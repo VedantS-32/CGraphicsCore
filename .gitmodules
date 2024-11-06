@@ -1,0 +1,9 @@
+[submodule "CGraphicsCore/Vendor/EASTL"]
+	path = CGraphicsCore/Vendor/EASTL
+	url = https://github.com/VedantS-32/EASTL.git
+[submodule "CGraphicsCore/Vendor/glfw"]
+	path = CGraphicsCore/Vendor/glfw
+	url = https://github.com/VedantS-32/glfw.git
+[submodule "CGraphicsCore/Vendor/glm"]
+	path = CGraphicsCore/Vendor/glm
+	url = https://github.com/g-truc/glm.git
