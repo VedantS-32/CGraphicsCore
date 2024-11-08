@@ -1,97 +1,99 @@
-project "ConstellationCore"
-	location "ConstellationCore"
+project "CGraphicsCore"
+	location "%{wks.location}/CGraphicsCore"
 	kind "SharedLib"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "off"
 	flags { "MultiProcessorCompile" }
 
-	targetdir ("bin/" .. outputdir .. "/%{prj.name}")
-	objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
+	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 	
-	pchheader "CGraphicspch.h"
-	pchsource "%{prj.name}/Source/CGraphicspch.cpp"
+	pchheader "CGRpch.h"
+	pchsource "Source/CGRpch.cpp"
 
 	files {
-		"%{prj.name}/Source/**.h",
-		"%{prj.name}/Source/**.cpp",
-		"%{prj.name}/Vendor/glm/**.h",
-		"%{prj.name}/Vendor/glm/**.hpp",
-		"%{prj.name}/Vendor/glm/**.inl",
-		"%{prj.name}/Vendor/stb_image/**.h",
-		"%{prj.name}/Vendor/stb_image/**.cpp",
+		"Source/**.h",
+		"Source/**.cpp",
+		"Vendor/spdlog/**.h",
+		"Vendor/glm/**.h",
+		"Vendor/glm/**.hpp",
+		"Vendor/glm/**.inl",
+		"Vendor/stb_image/**.h",
+		"Vendor/stb_image/**.cpp",
 	}
 
 	includedirs {
-		"%{prj.name}/Source",
+		"Source",
 		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.glfw}",
-		"%{IncludeDir.Glad}",
+		"%{IncludeDir.glad}",
 		"%{IncludeDir.glm}",
-		"%{IncludeDir.ImGui}",
+		"%{IncludeDir.imgui}",
+		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.assimp}"
 	}
 
 	links {
 		"glfw",
-		"Glad",
+		"glad",
 		"imgui",
 		"ImGuizmo",
-		"yaml-cpp",
 		"assimp"
 	}
 
 	postbuildcommands {
-        ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/CGraphicsObservatory")
+        ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/CGraphicsSandbox")
     }
 
 	filter "system:windows"
 		systemversion "latest"
+		buildoptions { "/utf-8" }
 		defines {
-			"CSTELL_PLATFORM_WINDOWS",
-			"CSTELL_DYNAMIC_LINK",
-			"CSTELL_BUILD_DLL",
+			"CGR_PLATFORM_WINDOWS",
+			"CGR_DYNAMIC_LINK",
+			"CGR_BUILD_DLL",
 			"GLFW_INCLUDE_NONE"
 		}
 		links {
-			"Gdi32.lib",
-			"User32.lib",
-			"Shell32.lib",
-			"Comdlg32.lib",
-			"opengl32.lib"
+			"Gdi32",
+			"User32",
+			"Shell32",
+			"Comdlg32",
+			"opengl32"
 		}
 	
 	filter "system:linux"
 		defines {
-			"CSTELL_PLATFORM_LINUX",
-			"CSTELL_DYNAMIC_LINK",
-			"CSTELL_BUILD_DLL",
+			"CGR_PLATFORM_LINUX",
+			"CGR_DYNAMIC_LINK",
+			"CGR_BUILD_DLL",
 			"GLFW_INCLUDE_NONE"
 		}
 
 	filter "system:macosx"
 		defines {
-			"CSTELL_PLATFORM_MACOSX",
-			"CSTELL_DYNAMIC_LINK",
-			"CSTELL_BUILD_DLL",
+			"CGR_PLATFORM_MACOSX",
+			"CGR_DYNAMIC_LINK",
+			"CGR_BUILD_DLL",
 			"GLFW_INCLUDE_NONE"
 		}
 
-	filter "files:ConstellationCore/Vendor/ImGuizmo/**.cpp"
+	filter "files:%{prj.name}/Vendor/ImGuizmo/**.cpp"
 		flags { "NoPCH" }
 
 	filter "configurations:Debug"
-		defines "CSTELL_DEBUG"
+		defines "CGR_DEBUG"
 		runtime "Debug"
 		symbols "On"
 
 	filter "configurations:Release"
-		defines "CSTELL_RELEASE"
+		defines "CGR_RELEASE"
 		runtime "Release"
 		optimize "On"
 
 	filter "configurations:Dist"
-		defines "CSTELL_DIST"
+		defines "CGR_DIST"
 		runtime "Release"
 		optimize "On"
