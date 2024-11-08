@@ -1,9 +1,18 @@
-[submodule "CGraphicsCore/Vendor/EASTL"]
-	path = CGraphicsCore/Vendor/EASTL
-	url = https://github.com/VedantS-32/EASTL.git
 [submodule "CGraphicsCore/Vendor/glfw"]
 	path = CGraphicsCore/Vendor/glfw
 	url = https://github.com/VedantS-32/glfw.git
 [submodule "CGraphicsCore/Vendor/glm"]
 	path = CGraphicsCore/Vendor/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "CGraphicsCore/Vendor/spdlog"]
+	path = CGraphicsCore/Vendor/spdlog
+	url = https://github.com/gabime/spdlog.git
+[submodule "CGraphicsCore/Vendor/imgui"]
+	path = CGraphicsCore/Vendor/imgui
+	url = https://github.com/VedantS-32/imgui.git
+[submodule "CGraphicsCore/Vendor/assimp"]
+	path = CGraphicsCore/Vendor/assimp
+	url = https://github.com/VedantS-32/assimp.git
+[submodule "CGraphicsCore/Vendor/ImGuizmo"]
+	path = CGraphicsCore/Vendor/ImGuizmo
+	url = https://github.com/VedantS-32/ImGuizmo.git
