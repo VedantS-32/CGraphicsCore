@@ -1,7 +1,5 @@
 #pragma once
 
-#ifdef CGR_PLATFORM_WINDOWS
-
 extern Cgr::Application* Cgr::CreateApplication();
 
 int main(int argc, char** argv)
@@ -12,5 +10,3 @@ int main(int argc, char** argv)
 
 	app->Run();
 }
-
-#endif
