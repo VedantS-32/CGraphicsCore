@@ -12,5 +12,5 @@ namespace Cgr
 		void Run();
 	};
 
-	CGR_API Application* CreateApplication();
+	Application* CreateApplication();
 }

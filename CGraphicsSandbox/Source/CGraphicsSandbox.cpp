@@ -13,7 +13,7 @@ namespace Cgr
 		}
 	};
 
-	Application* Cgr::CreateApplication()
+	Application* CreateApplication()
 	{
 		CGR_INFO("Hellow Computer Graphics!");
 		return new CGraphicsSandbox();
