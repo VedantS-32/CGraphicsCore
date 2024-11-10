@@ -7,15 +7,13 @@ namespace Cgr
 	class CGraphicsSandbox : public Application
 	{
 	public:
-		CGraphicsSandbox()
-		{
-			CGR_TRACE("Creating Client Application...");
-		}
+		CGraphicsSandbox() : Application("CGraphicsSandbox", 1080, 720)
+		{}
 	};
 
 	Application* CreateApplication()
 	{
-		CGR_INFO("Hellow Computer Graphics!");
+		CGR_INFO("Created Sandbox Application");
 		return new CGraphicsSandbox();
 	}
 }
