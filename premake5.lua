@@ -1,6 +1,6 @@
 workspace "CGraphicsCore"
 	architecture "x64"
-	startproject "GraphicsSandbox"
+	startproject "CGraphicsSandbox"
 
 	configurations {
 		"Debug",
