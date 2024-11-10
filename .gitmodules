@@ -10,6 +10,6 @@
 [submodule "CGraphicsCore/Vendor/imgui"]
 	path = CGraphicsCore/Vendor/imgui
 	url = https://github.com/VedantS-32/imgui.git
-[submodule "CGraphicsCore/Vendor/ImGuizmo"]
-	path = CGraphicsCore/Vendor/ImGuizmo
-	url = https://github.com/VedantS-32/ImGuizmo.git
+[submodule "CGraphicsCore/Vendor/assimp"]
+	path = CGraphicsCore/Vendor/assimp
+	url = https://github.com/VedantS-32/assimp.git
