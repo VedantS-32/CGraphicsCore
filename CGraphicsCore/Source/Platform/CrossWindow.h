@@ -8,6 +8,7 @@
 
 namespace Cgr
 {
+	// Platform agnostic window class
 	class CrossWindow : public Window
 	{
 	public:
@@ -20,8 +21,10 @@ namespace Cgr
 
 		virtual void* GetNativeWindow() const override { return m_WindowHandle; }
 
-		virtual uint32_t GetWidth() const override { return m_WindowProps.Width; }
-		virtual uint32_t GetHeight() const override { return m_WindowProps.Height; }
+		virtual uint32_t GetWidth() const override { return m_WindowData.Width; }
+		virtual uint32_t GetHeight() const override { return m_WindowData.Height; }
+
+		virtual void SetEventCallback(const EventCallbackFn& callback) override { m_WindowData.EventCallback = callback; }
 
 		virtual void SetVSync(bool enabled) override;
 		virtual bool IsVSync() const override;
@@ -31,6 +34,15 @@ namespace Cgr
 	private:
 		GLFWwindow* m_WindowHandle;
 		RendererContext* m_RendererContext;
-		WindowProps m_WindowProps;
+		struct WindowData
+		{
+			std::string Title;
+			uint32_t Width, Height;
+			bool VSync;
+
+			EventCallbackFn EventCallback;
+		};
+
+		WindowData m_WindowData;
 	};
 }

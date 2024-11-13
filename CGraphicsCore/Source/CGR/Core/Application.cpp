@@ -1,6 +1,7 @@
 #include "CGRpch.h"
-#include "Application.h"
 
+#include "Application.h"
+#include "CGR/Event/Event.h"
 #include "Window.h"
 
 namespace Cgr
@@ -15,6 +16,13 @@ namespace Cgr
 
         m_Window = Window::Create(WindowProps(title, width, height));
         m_Window->SetVSync(true);
+
+        m_Window->SetEventCallback(CGR_BIND_EVENT_FN(OnEvent));
+    }
+
+    void Application::OnEvent(Event& e)
+    {
+        CGR_CORE_INFO(e.ToString());
     }
 
     void Application::Run()

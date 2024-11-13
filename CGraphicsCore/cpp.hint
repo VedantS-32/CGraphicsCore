@@ -4,3 +4,4 @@
 #define CGR_API __declspec(dllexport)
 #define CGR_API __declspec(dllimport)
 #define CGR_API
+#define EVENT_CLASS_TYPE(type) virtual const EventType GetEventType(type) const { return GetStaticType(type); } static const EventType GetStaticType(type) const { return EventType::type; } virtual const char* GetName(type) const override { return #type; }

@@ -10,8 +10,8 @@ namespace Cgr
 	public:
 		Application(std::string title, uint32_t width, uint32_t height);
 
+		void OnEvent(Event& e);
 		void Run();
-
 		void Close();
 
 		const Window& GetWindow() const { return *m_Window; }
