@@ -415,3 +415,7 @@ vendor/glm
 
 # Resource files
 A2_Transformations/res/mesh
+
+# MakeFiles
+
+MakeFile
