@@ -2,6 +2,8 @@
 
 #include "Application.h"
 #include "CGR/Event/Event.h"
+#include "CGR/Core/Layer.h"
+#include "CGR/Core/LayerStack.h"
 #include "Window.h"
 
 namespace Cgr
@@ -18,11 +20,27 @@ namespace Cgr
         m_Window->SetVSync(true);
 
         m_Window->SetEventCallback(CGR_BIND_EVENT_FN(OnEvent));
+
+        m_EventManager.SetLayerStack(&m_LayerStack);
+
+        m_EventManager.AddListener<MouseScrolledEvent>(CGR_BIND_EVENT_FN(Hello));
+    }
+
+    void Application::PushLayer(Layer* layer)
+    {
+        m_LayerStack.PushLayer(layer);
+        layer->OnAttach();
+    }
+
+    void Application::PushOverlay(Layer* layer)
+    {
+        m_LayerStack.PushOverlay(layer);
+        layer->OnAttach();
     }
 
     void Application::OnEvent(Event& e)
     {
-        CGR_CORE_INFO(e.ToString());
+        m_EventManager.Dispatch(e);
     }
 
     void Application::Run()
@@ -31,6 +49,9 @@ namespace Cgr
 
         while (m_IsRunning)
         {
+            for (Layer* layer : m_LayerStack)
+                layer->OnUpdate();
+
             m_Window->OnUpdate();
         }
     }
@@ -43,5 +64,10 @@ namespace Cgr
     Application& Application::Get()
     {
         return *s_Application;
+    }
+
+    void Application::Hello(const Event& e)
+    {
+        CGR_CORE_TRACE("Hellow, {0}", e.ToString());
     }
 }

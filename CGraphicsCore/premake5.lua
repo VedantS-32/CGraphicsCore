@@ -8,7 +8,7 @@ project "CGraphicsCore"
 
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
-	
+
 	pchheader "CGRpch.h"
 	pchsource "Source/CGRpch.cpp"
 
@@ -20,7 +20,7 @@ project "CGraphicsCore"
 		"Vendor/glm/**.hpp",
 		"Vendor/glm/**.inl",
 		"Vendor/stb_image/**.h",
-		"Vendor/stb_image/**.cpp",
+		"Vendor/stb_image/**.cpp"
 	}
 
 	includedirs {
