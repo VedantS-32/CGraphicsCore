@@ -2,13 +2,17 @@
 
 #include <CGR/Core/Entrypoint.h>
 
+#include "EditorLayer.h"
+
 namespace Cgr
 {
 	class CGraphicsSandbox : public Application
 	{
 	public:
 		CGraphicsSandbox() : Application("CGraphicsSandbox", 1080, 720)
-		{}
+		{
+			PushLayer(new EditorLayer("Editor"));
+		}
 	};
 
 	Application* CreateApplication()
