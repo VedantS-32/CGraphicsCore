@@ -18,7 +18,7 @@ namespace Cgr
 		virtual void OnDetach() {}
 		virtual void OnUpdate() {}
 		virtual void OnUIRender() {}
-		virtual void OnEvent(const Event& e) {}
+		virtual void OnEvent(Event& e) {}
 
 		const std::string& GetLayerName() { return m_LayerName; }
 

@@ -22,7 +22,6 @@ IncludeDir["assimp"] = "%{wks.location}/CGraphicsCore/vendor/assimp/include"
 
 group "Dependencies"
 	include "CGraphicsCore/Vendor/glfw"
-	include "CGraphicsCore/Vendor/glad"
 	include "CGraphicsCore/vendor/ImGui"
 	include "CGraphicsCore/vendor/ImGuizmo"
 	include "CGraphicsCore/vendor/assimp"

@@ -181,11 +181,6 @@ namespace Cgr
         m_WindowData.VSync = enabled;
     }
 
-    bool CrossWindow::IsVSync() const
-    {
-        return m_WindowData.VSync;
-    }
-
     void CrossWindow::Shutdown()
     {
         glfwDestroyWindow(m_WindowHandle);

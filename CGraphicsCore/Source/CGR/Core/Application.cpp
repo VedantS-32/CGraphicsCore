@@ -2,8 +2,10 @@
 
 #include "Application.h"
 #include "CGR/Event/Event.h"
+#include "CGR/Event/ApplicationEvent.h"
 #include "CGR/Core/Layer.h"
 #include "CGR/Core/LayerStack.h"
+#include "CGR/Renderer/RenderCommand.h"
 #include "Window.h"
 
 namespace Cgr
@@ -16,14 +18,15 @@ namespace Cgr
 
         s_Application = this;
 
+
         m_Window = Window::Create(WindowProps(title, width, height));
         m_Window->SetVSync(true);
 
         m_Window->SetEventCallback(CGR_BIND_EVENT_FN(OnEvent));
 
-        m_EventManager.SetLayerStack(&m_LayerStack);
+        RenderCommand::Init();
 
-        m_EventManager.AddListener<MouseScrolledEvent>(CGR_BIND_EVENT_FN(Hello));
+        m_EventManager = EventManager(&m_LayerStack);
     }
 
     void Application::PushLayer(Layer* layer)
@@ -40,7 +43,17 @@ namespace Cgr
 
     void Application::OnEvent(Event& e)
     {
-        m_EventManager.Dispatch(e);
+        m_EventManager.DispatchGlobalEvents(e);
+
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<WindowClosedEvent>(CGR_BIND_EVENT_FN(OnWindowClose));
+
+        for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
+        {
+            (*it)->OnEvent(e);
+            if (e.Handled)
+                break;
+        }
     }
 
     void Application::Run()
@@ -66,8 +79,9 @@ namespace Cgr
         return *s_Application;
     }
 
-    void Application::Hello(const Event& e)
+    void Application::OnWindowClose(WindowClosedEvent& e)
     {
-        CGR_CORE_TRACE("Hellow, {0}", e.ToString());
+        CGR_CORE_INFO("{0} window closed", m_Window->GetTitle());
+        m_IsRunning = false;
     }
 }

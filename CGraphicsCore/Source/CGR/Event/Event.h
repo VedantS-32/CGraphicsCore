@@ -12,7 +12,10 @@ namespace Cgr
 							   virtual EventType GetEventType() const override { return GetStaticType(); }\
 							   virtual const char* GetName() const override { return #type; }
 
-	using EventCallbackFn = std::function<void(const Event&)>;
+	using EventCallbackHandle = std::function<void(Event&)>;
+
+	template<typename T>
+	using EventCallbackFn = std::function<void(T&)>;
 
 	enum class EventType
 	{
@@ -26,14 +29,17 @@ namespace Cgr
 	class CGR_API Event
 	{
 		friend class EventManager;
+		friend class EventDispatcher;
 		friend class EventListenerInterface;
+		friend class Application;
+
 	public:
 		virtual EventType GetEventType() const = 0;
 		virtual const char* GetName() const = 0;
 		virtual std::string ToString() const = 0;
 
 	private:
-		mutable bool Handled = false;
+		bool Handled = false;
 	};
 	
 	class CGR_API EventListenerInterface
@@ -43,18 +49,18 @@ namespace Cgr
 	public:
 		virtual ~EventListenerInterface() { }
 
-		void Exec(const Event& e)
+		void Exec(Event& e)
 		{
 			Call(e);
 		}
 
-		void SetHandled(const Event& e) { e.Handled = true; }
-		bool GetIsHandled(const Event& e) { return e.Handled; }
+		void SetHandled(Event& e) { e.Handled = true; }
+		bool GetIsHandled(Event& e) { return e.Handled; }
 
 		virtual bool IsActive() = 0;
 
 	private:
-		virtual void Call(const Event& e) = 0;
+		virtual void Call(Event& e) = 0;
 
 	};
 
@@ -65,7 +71,7 @@ namespace Cgr
 
 	public:
 		EventListener() {}
-		EventListener(const EventCallbackFn& eventCallback)
+		EventListener(const EventCallbackHandle& eventCallback)
 			: m_EventCallbackFn(eventCallback)
 		{
 			CGR_CORE_INFO("Added event listener");
@@ -78,7 +84,7 @@ namespace Cgr
 		}
 
 	private:
-		virtual void Call(const Event& e) override
+		virtual void Call(Event& e) override
 		{
 			if(T::GetStaticType() == e.GetEventType())
 			{
@@ -92,22 +98,26 @@ namespace Cgr
 
 		virtual bool IsActive() override { return Active; }
 
-		EventCallbackFn m_EventCallbackFn;
+		EventCallbackHandle m_EventCallbackFn;
 		bool Active = true;
 	};
 
 	class EventManager
 	{
 	public:
+		EventManager() = default;
+		EventManager(LayerStack* layerStack)
+			: m_LayerStack(layerStack) {}
+
 		template<typename T>
-		void AddListener(const EventCallbackFn& eventHandle)
+		// Listen to events independent of application layer
+		void AddGlobalListener(const EventCallbackHandle& eventHandle)
 		{
 			m_EventQueue.push_back(CreateScope<EventListener<T>>(eventHandle));
 		}
 
-		void SetLayerStack(LayerStack* layerStack) { m_LayerStack = layerStack; }
-
-		void Dispatch(const Event& e)
+		// Dispatches layer independent events
+		void DispatchGlobalEvents(Event& e)
 		{
 			for (auto it = m_EventQueue.begin(); it != m_EventQueue.end(); it++)
 			{
@@ -126,7 +136,8 @@ namespace Cgr
 			for (auto it = m_LayerStack->end(); it != m_LayerStack->begin();)
 			{
 				(*--it)->OnEvent(e);
-				if (e.Handled) break;
+				if (e.Handled)
+					break;
 			}
 		}
 
@@ -135,7 +146,30 @@ namespace Cgr
 		LayerStack* m_LayerStack;
 	};
 
-	inline std::ostream& operator<<(std::ostream& os, const Event& e)
+	class CGR_API EventDispatcher
+	{
+	public:
+		EventDispatcher(Event& e)
+			: m_Event(e) {}
+
+		template<typename T, typename F>
+		void Dispatch(const F& func)
+		{
+			if (T::GetStaticType() == m_Event.GetEventType())
+			{
+				if (!m_Event.Handled)
+				{
+					func(static_cast<T&>(m_Event));
+					m_Event.Handled = true;
+				}
+			}
+		}
+
+	private:
+		Event& m_Event;
+	};
+
+	inline std::ostream& operator<<(std::ostream& os, Event& e)
 	{
 		return os << e.ToString();
 	}

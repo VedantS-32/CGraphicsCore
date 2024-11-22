@@ -15,6 +15,10 @@ project "CGraphicsCore"
 	files {
 		"Source/**.h",
 		"Source/**.cpp",
+
+		"Vendor/glad/include/glad/glad.h",
+		"Vendor/glad/src/glad.c",
+		"Vendor/glad/include/KHR/khrplatform.h",
 		"Vendor/spdlog/**.h",
 		"Vendor/glm/**.h",
 		"Vendor/glm/**.hpp",
@@ -37,7 +41,6 @@ project "CGraphicsCore"
 
 	links {
 		"glfw",
-		"glad",
 		"imgui",
 		"ImGuizmo",
 		"assimp"
@@ -81,6 +84,9 @@ project "CGraphicsCore"
 		}
 
 	filter "files:%{prj.name}/Vendor/ImGuizmo/**.cpp"
+		flags { "NoPCH" }
+
+	filter "files:Vendor/glad/src/glad.c"
 		flags { "NoPCH" }
 
 	filter "configurations:Debug"

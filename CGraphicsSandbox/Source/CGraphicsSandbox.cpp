@@ -9,7 +9,7 @@ namespace Cgr
 	class CGraphicsSandbox : public Application
 	{
 	public:
-		CGraphicsSandbox() : Application("CGraphicsSandbox", 1080, 720)
+		CGraphicsSandbox() : Application("CGraphicsSandbox", 900, 720)
 		{
 			PushLayer(new EditorLayer("Editor"));
 		}

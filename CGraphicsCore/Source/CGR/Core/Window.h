@@ -31,6 +31,7 @@ namespace Cgr
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
+		virtual std::string GetTitle() const = 0;
 
 		// Use to  application OnEvent callback
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;

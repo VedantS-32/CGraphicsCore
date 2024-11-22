@@ -6,6 +6,8 @@
 
 namespace Cgr
 {
+	class WindowClosedEvent;
+
 	class CGR_API Application
 	{
 	public:
@@ -21,7 +23,7 @@ namespace Cgr
 		const Window& GetWindow() const { return *m_Window; }
 
 		static Application& Get();
-		void Hello(const Event& e);
+		void OnWindowClose(WindowClosedEvent& e);
 
 	private:
 		bool m_IsRunning = false;

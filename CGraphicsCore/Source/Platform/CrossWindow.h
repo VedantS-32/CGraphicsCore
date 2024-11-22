@@ -23,11 +23,11 @@ namespace Cgr
 
 		virtual uint32_t GetWidth() const override { return m_WindowData.Width; }
 		virtual uint32_t GetHeight() const override { return m_WindowData.Height; }
-
+		virtual std::string GetTitle() const override { return m_WindowData.Title; }
+		virtual bool IsVSync() const override { return m_WindowData.VSync; }
 		virtual void SetEventCallback(const EventCallbackFn& callback) override { m_WindowData.EventCallback = callback; }
 
 		virtual void SetVSync(bool enabled) override;
-		virtual bool IsVSync() const override;
 
 		void Shutdown();
 
