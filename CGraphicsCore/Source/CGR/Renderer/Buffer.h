@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CGR/Core/Core.h"
-#include "ShaderDataTypes.h"
+#include "ShaderDataType.h"
 
 namespace Cgr
 {
@@ -108,7 +108,7 @@ namespace Cgr
 
 	private:
 		std::vector<BufferElement> m_Elements;
-		int m_Stride;
+		int m_Stride = 0;
 	};
 	class CGR_API IndexBuffer
 	{
@@ -119,10 +119,10 @@ namespace Cgr
 		virtual void Unbind() = 0;
 
 		virtual uint32_t GetCount() = 0;
-		virtual void SetData(int64_t offset, uint32_t count, uint32_t* indices) = 0;
+		virtual void SetData(int64_t offset, uint32_t count, const uint32_t* indices) = 0;
 
 	public:
-		static Ref<IndexBuffer> Create(uint32_t count, uint32_t* indices, BufferDrawUsage usage = BufferDrawUsage::StaticDraw);
+		static Ref<IndexBuffer> Create(uint32_t count, const uint32_t* indices, BufferDrawUsage usage = BufferDrawUsage::StaticDraw);
 	};
 
 	class CGR_API VertexBuffer
@@ -139,4 +139,33 @@ namespace Cgr
 		static Ref<VertexBuffer> Create(int64_t size, const void* data, BufferDrawUsage usage = BufferDrawUsage::StaticDraw);
 	};
 
+	class CGR_API UniformBuffer
+	{
+	public:
+		virtual ~UniformBuffer() {};
+
+		virtual void Bind() = 0;
+		virtual void Unbind() = 0;
+		virtual void SetBlockBinding(uint32_t shaderID) = 0;
+
+		virtual void SetData(int64_t offset, int64_t size, const void* data) = 0;
+
+	public:
+		static Ref<UniformBuffer> Create(const std::string& blockName);
+	};
+
+	class CGR_API ShaderStorageBuffer
+	{
+	public:
+		virtual ~ShaderStorageBuffer() {};
+
+		virtual void Bind() = 0;
+		virtual void Unbind() = 0;
+
+		virtual void* GetDataPtr() = 0;
+		virtual void SetData(int64_t offset, int64_t size, const void* data) = 0;
+
+	public:
+		static Ref<ShaderStorageBuffer> Create();
+	};
 }

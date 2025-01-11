@@ -6,21 +6,10 @@
 
 namespace Cgr
 {
-	OpenGLVertexArray::OpenGLVertexArray(const BufferLayout& bufferLayout)
-		: m_BufferLayout(bufferLayout)
+	OpenGLVertexArray::OpenGLVertexArray()
 	{
-		glGenBuffers(1, &m_RendererID);
+		glCreateVertexArrays(1, &m_RendererID);
 		glBindVertexArray(m_RendererID);
-
-		auto& elements = m_BufferLayout.GetBufferElements();
-
-		for (auto& e : elements)
-		{
-			glVertexAttribPointer(e.AttribIndex, GetElementCount(e.Type),
-				OpenGLShader::ToOpenGLDataType(e.Type), e.IsNormalized,
-				m_BufferLayout.GetStride(), reinterpret_cast<const void*>(static_cast<std::uintptr_t>(e.Offset)));
-			glEnableVertexAttribArray(e.AttribIndex);
-		}
 	}
 
 	OpenGLVertexArray::~OpenGLVertexArray()
@@ -38,7 +27,6 @@ namespace Cgr
 		glBindVertexArray(0);
 	}
 
-	// Set layout of vertex buffer. Note: When you add vertex buffer, this function is also invoked to reduce verbosity
 	void OpenGLVertexArray::SetBufferLayout(const BufferLayout& bufferLayout)
 	{
 		m_BufferLayout = bufferLayout;

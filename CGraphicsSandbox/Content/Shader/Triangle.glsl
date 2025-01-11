@@ -1,15 +1,15 @@
 #type vertex
 #version 330
 
-layout(location = 0) in vec2 aPosition;
-layout(location = 1) in vec3 aColor;
+layout(location = 0) in vec3 aPosition;
+//layout(location = 1) in vec3 aColor;
 
 out vec3 vColor;
 
 void main()
 {
-	vColor = aColor;
-	gl_Position = vec4(aPosition, 0.0, 1.0);
+	vColor = vec3(1.0, 0.0, 0.5);
+	gl_Position = vec4(aPosition, 1.0);
 }
 
 #type fragment

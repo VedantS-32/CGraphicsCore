@@ -11,19 +11,38 @@ namespace Cgr
 	public:
 		EditorLayer(const std::string& layerName);
 
-		virtual void OnAttach() { CGR_TRACE("Attached {0} layer", m_LayerName); }
-		virtual void OnDetach() { CGR_TRACE("Detached {0} layer", m_LayerName); }
-		virtual void OnUpdate();
-		virtual void OnUIRender();
-		virtual void OnEvent(Event& e);
+		virtual void OnAttach() override;
+		virtual void OnDetach() override { CGR_TRACE("Detached {0} layer", m_LayerName); }
+		virtual void OnUpdate(Timestep ts) override;
+		virtual void OnUIRender() override;
+		virtual void OnEvent(Event& e) override;
 
 	private:
-		Scope<BufferLayout> m_bufferLayout;
-		Ref<VertexArray> m_vao;
+		BufferLayout m_BufferLayout;
+		Ref<VertexArray> m_VertexArray;
 		Ref<VertexBuffer> m_vbo;
 		Ref<IndexBuffer> m_ibo;
 		Ref<Shader> m_shader;
 
+		Ref<ShaderLibrary> m_ShaderLib;
+		Ref<Material> m_Material;
+		Ref<Model> m_Model;
+		Ref<UniformBuffer> m_UniformBuffer;
+		Ref<UniformBuffer> m_ModelProps;
+
+		Ref<Framebuffer> m_Framebuffer;
+		Camera m_Camera;
+		Ref<ShaderStorageBuffer> m_SSBO;
+		Ref<ModelRenderer> m_ModelRenderer;
+
 		glm::vec4 m_ClearColor;
+		glm::vec4 m_Color;
+		glm::vec4 m_Color2;
+		glm::vec2 m_ViewportSize;
+		glm::vec2 m_ViewportBounds[2];
+		bool m_ViewportFocused;
+		bool m_ViewportHovered;
+
+		int m_CurrentEntity = -1;
 	};
 }

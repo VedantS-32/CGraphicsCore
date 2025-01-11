@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CGR/Core/Core.h"
+#include "Timestep.h"
 
 namespace Cgr
 {
@@ -16,7 +17,7 @@ namespace Cgr
 
 		virtual void OnAttach() {}
 		virtual void OnDetach() {}
-		virtual void OnUpdate() {}
+		virtual void OnUpdate(Timestep ts) {}
 		virtual void OnUIRender() {}
 		virtual void OnEvent(Event& e) {}
 

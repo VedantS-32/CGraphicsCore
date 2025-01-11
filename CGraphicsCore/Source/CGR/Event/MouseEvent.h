@@ -22,7 +22,7 @@ namespace Cgr
 
 		EVENT_CLASS_TYPE(MouseMoved);
 
-	private:
+	public:
 		float XPos, YPos;
 	};
 
@@ -42,7 +42,7 @@ namespace Cgr
 
 		EVENT_CLASS_TYPE(MouseScrolled);
 
-	private:
+	public:
 		float XOffset, YOffset;
 	};
 

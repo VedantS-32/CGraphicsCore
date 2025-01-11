@@ -10,7 +10,7 @@ namespace Cgr
 	class OpenGLVertexArray : public VertexArray
 	{
 	public:
-		OpenGLVertexArray(const BufferLayout& bufferLayout);
+		OpenGLVertexArray();
 		~OpenGLVertexArray();
 
 		virtual void Bind() override;

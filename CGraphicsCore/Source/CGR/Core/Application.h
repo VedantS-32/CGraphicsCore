@@ -3,6 +3,7 @@
 #include "Core.h"
 #include "Window.h"
 #include "CGR/Event/MouseEvent.h"
+#include "CGR/UI/ImGuiLayer.h"
 
 namespace Cgr
 {
@@ -21,6 +22,7 @@ namespace Cgr
 		void Close();
 
 		const Window& GetWindow() const { return *m_Window; }
+		ImGuiLayer* GetUILayer() { return m_ImGuiLayer; }
 
 		static Application& Get();
 		void OnWindowClose(WindowClosedEvent& e);
@@ -34,8 +36,12 @@ namespace Cgr
 	private:
 		static Application* s_Application;
 
+		ImGuiLayer* m_ImGuiLayer;
+
 		LayerStack m_LayerStack;
 		EventManager m_EventManager;
+		
+		float m_LastFrameTime = 0.0f;
 	};
 
 

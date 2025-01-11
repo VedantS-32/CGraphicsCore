@@ -1,16 +1,18 @@
-#include <CGR.h>
-
-#include <CGR/Core/Entrypoint.h>
+#include "CGR.h"
+#include "CGR/Core/Entrypoint.h"
 
 #include "EditorLayer.h"
+
+#include <imgui.h>
 
 namespace Cgr
 {
 	class CGraphicsSandbox : public Application
 	{
 	public:
-		CGraphicsSandbox() : Application("CGraphicsSandbox", 900, 720)
+		CGraphicsSandbox() : Application("CGraphicsSandbox", 1280, 720)
 		{
+			ImGui::SetCurrentContext(&Application::Get().GetUILayer()->GetImGuiContext());
 			PushLayer(new EditorLayer("Editor"));
 		}
 	};

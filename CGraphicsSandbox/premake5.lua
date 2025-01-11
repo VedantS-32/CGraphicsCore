@@ -28,6 +28,7 @@ project "CGraphicsSandbox"
 	}
 
 	links {
+		"imgui",
 		"CGraphicsCore"
 	}
 

@@ -8,6 +8,8 @@
 #include "CGR/Renderer/RenderCommand.h"
 #include "Window.h"
 
+#include <GLFW/glfw3.h>
+
 namespace Cgr
 {
     Application* Application::s_Application = nullptr;
@@ -27,6 +29,9 @@ namespace Cgr
         RenderCommand::Init();
 
         m_EventManager = EventManager(&m_LayerStack);
+
+        m_ImGuiLayer = new ImGuiLayer();
+        PushOverlay(m_ImGuiLayer);
     }
 
     void Application::PushLayer(Layer* layer)
@@ -60,10 +65,19 @@ namespace Cgr
     {
         m_IsRunning = true;
 
+        float time = (float)glfwGetTime();
+        Timestep timestep = time - m_LastFrameTime;
+        m_LastFrameTime = time;
+
         while (m_IsRunning)
         {
             for (Layer* layer : m_LayerStack)
-                layer->OnUpdate();
+                layer->OnUpdate(timestep);
+
+            m_ImGuiLayer->Begin();
+            for (Layer* layer : m_LayerStack)
+                layer->OnUIRender();
+            m_ImGuiLayer->End();
 
             m_Window->OnUpdate();
         }

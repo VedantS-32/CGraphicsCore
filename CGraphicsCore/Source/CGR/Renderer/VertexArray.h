@@ -16,6 +16,6 @@ namespace Cgr
 		virtual void SetBufferLayout(const BufferLayout& bufferLayout) = 0;
 
 	public:
-		static Ref<VertexArray> Create(const BufferLayout& bufferLayout);
+		static Ref<VertexArray> Create();
 	};
 }

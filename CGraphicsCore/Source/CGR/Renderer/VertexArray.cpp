@@ -6,7 +6,7 @@
 
 namespace Cgr
 {
-    Ref<VertexArray> VertexArray::Create(const BufferLayout& bufferLayout)
+    Ref<VertexArray> VertexArray::Create()
     {
         switch (RendererAPI::GetAPI())
         {
@@ -14,7 +14,7 @@ namespace Cgr
             CGR_CORE_ASSERT(false, "No Graphics API selected");
             break;
         case Cgr::API::OpenGL:
-            return CreateRef<OpenGLVertexArray>(bufferLayout);
+            return CreateRef<OpenGLVertexArray>();
             break;
         default:
             break;
