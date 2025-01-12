@@ -27,8 +27,6 @@ namespace Cgr
 		Ref<ShaderLibrary> m_ShaderLib;
 		Ref<Material> m_Material;
 		Ref<Model> m_Model;
-		Ref<UniformBuffer> m_UniformBuffer;
-		Ref<UniformBuffer> m_ModelProps;
 
 		Ref<Framebuffer> m_Framebuffer;
 		Camera m_Camera;
@@ -36,13 +34,12 @@ namespace Cgr
 		Ref<ModelRenderer> m_ModelRenderer;
 
 		glm::vec4 m_ClearColor;
-		glm::vec4 m_Color;
-		glm::vec4 m_Color2;
 		glm::vec2 m_ViewportSize;
 		glm::vec2 m_ViewportBounds[2];
 		bool m_ViewportFocused;
 		bool m_ViewportHovered;
 
+		int m_PreviousEntity = -1;
 		int m_CurrentEntity = -1;
 	};
 }

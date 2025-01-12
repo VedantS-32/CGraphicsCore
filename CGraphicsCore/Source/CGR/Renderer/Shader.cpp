@@ -6,7 +6,7 @@
 
 namespace Cgr
 {
-    Ref<Shader> Shader::Create(const std::string& shaderPath)
+    Ref<Shader> Shader::Create(const std::string& name, const std::string& shaderPath)
     {
         switch (RendererAPI::GetAPI())
         {
@@ -14,7 +14,7 @@ namespace Cgr
             CGR_CORE_ASSERT("No Graphics API selected");
             break;
         case Cgr::API::OpenGL:
-            return CreateRef<OpenGLShader>(shaderPath);
+            return CreateRef<OpenGLShader>(name, shaderPath);
             break;
         default:
             break;
@@ -39,7 +39,7 @@ namespace Cgr
 
         if (!Exists(name))
         {
-            auto shader = Shader::Create(shaderPath);
+            auto shader = Shader::Create(name, shaderPath);
             Add(name, shader);
         }
     }

@@ -24,6 +24,11 @@ namespace Cgr
 	public:
 		static Ref<ModelRenderer> Create(const Ref<VertexArray> vertexArray, Ref<ShaderStorageBuffer> SSBO);
 
+		// Temp
+		Ref<UniformBuffer> m_WorldSettings;
+		glm::vec3 m_AmbientLight;
+		glm::vec3 m_LightPosition;
+
 	private:
 		BufferLayout m_BufferLayout;
 		Ref<VertexArray> m_VertexArray;

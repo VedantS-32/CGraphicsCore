@@ -20,7 +20,7 @@ namespace Cgr
 			const void* userParam)
 	{
 		type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "";
-		CGR_CORE_TRACE("GL CALLBACK: type = 0x{0}, severity = 0x{1}, message = {2}", type, severity, message);
+		//CGR_CORE_TRACE("GL CALLBACK: type = 0x{0}, severity = 0x{1}, message = {2}", type, severity, message);
 	}
 
 	static void SetGLDebugMessageCallback()

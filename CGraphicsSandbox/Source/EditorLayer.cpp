@@ -9,9 +9,10 @@ namespace Cgr
 {
     static glm::mat4 transform{ 1.0f };
     static glm::vec3 sPos = { 0.0f, 0.0f, 0.0f };
+    static int meshIdx = 0;
 
 	EditorLayer::EditorLayer(const std::string& layerName)
-		: Layer(layerName), m_ClearColor(0.5f, 0.5f, 0.5f, 1.0f), m_Color(1.0f, 1.0f, 0.5f, 1.0f), m_Color2(0.65f, 0.5f, 0.85f, 1.0f), m_ViewportSize(1280, 720)
+		: Layer(layerName), m_ClearColor(0.5f, 0.5f, 0.5f, 1.0f), m_ViewportSize(1280, 720)
     {
 		m_BufferLayout =
 		{
@@ -31,8 +32,8 @@ namespace Cgr
         m_ModelRenderer = ModelRenderer::Create(m_VertexArray, m_SSBO);
 
         m_VertexArray->Bind();
+        //m_ModelRenderer->AddModel("Content/Model/Cube.obj");
         m_ModelRenderer->AddModel("Content/Model/Pot.fbx");
-        m_ModelRenderer->AddModel("Content/Model/Cube.obj");
 
         m_Framebuffer = Framebuffer::Create();
 
@@ -55,6 +56,7 @@ namespace Cgr
 		RenderCommand::Clear();
 
         m_Camera.OnUpdate(ts);
+
         m_ModelRenderer->OnUpdate(m_Camera);
 
         m_Framebuffer->Unbind();
@@ -162,27 +164,41 @@ namespace Cgr
         ImGui::Begin("World Settings");
         if (ImGui::ColorEdit4("Clear color", glm::value_ptr(m_ClearColor)))
             RenderCommand::SetClearColor(m_ClearColor);
+        if(ImGui::ColorEdit3("AmbientLight", glm::value_ptr(m_ModelRenderer->m_AmbientLight)))
+            m_ModelRenderer->m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_ModelRenderer->m_AmbientLight));
+        if(ImGui::DragFloat3("LightPosition", glm::value_ptr(m_ModelRenderer->m_LightPosition)))
+            m_ModelRenderer->m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_ModelRenderer->m_LightPosition));
         ImGui::End();
 
         ImGui::Begin("Properties");
         if(m_CurrentEntity != -1)
         {
-            //auto modelUniformBuffer = models[m_CurrentEntity]->GetMeshes()[0].GetMaterial()->GetUniformBuffer();
-            //modelUniformBuffer->SetBlockBinding(models[m_CurrentEntity]->GetMeshes()[0].GetMaterial()->GetShader()->GetRendererID());
-            //if (ImGui::DragFloat3("translation", glm::value_ptr(sPos), 0.1f))
-            //{
-            //    modelUniformBuffer->SetData(0, sizeof(glm::mat4), glm::value_ptr(glm::translate(glm::mat4(1.0f), sPos)));
-            //}
+            if (m_CurrentEntity != m_PreviousEntity)
+            {
+                meshIdx = 0;
+                m_PreviousEntity = m_CurrentEntity;
+            }
 
             auto& modelMatrix = models[m_CurrentEntity]->GetModelMatrix();
             sPos = modelMatrix[3];
-            //modelUniformBuffer->SetBlockBinding(models[m_CurrentEntity]->GetMeshes()[0].GetMaterial()->GetShader()->GetRendererID());
+
             if (ImGui::DragFloat3("translation", glm::value_ptr(sPos), 0.1f))
             {
                 modelMatrix = glm::translate(glm::mat4(1.0f), sPos);
             }
+            
+            std::vector<const char*> meshList;
+            auto& meshes = models[m_CurrentEntity]->GetMeshes();
 
-            auto& materialParams = models[m_CurrentEntity]->GetMeshes()[0].GetMaterial()->GetAllVariables();
+            for (auto& mesh : meshes)
+            {
+                meshList.push_back(std::format("Index: {}", mesh.GetMaterialIndex()).c_str());
+            }
+
+            ImGui::ListBox("Material", &meshIdx, meshList.data(), static_cast<int>(meshList.size()));
+
+
+            auto& materialParams = models[m_CurrentEntity]->GetMaterial(meshIdx)->GetAllVariables();
 
             for (auto& param : materialParams)
             {

@@ -39,6 +39,7 @@ namespace Cgr
 	private:
 		Ref<Shader> m_Shader;
 		Ref<UniformBuffer> m_UniformBuffer;
+		std::string m_Name = "Default";
 
 		// Material paramters stored in RAM
 		std::vector<Ref<ShaderVariable>> m_ShaderVariables;

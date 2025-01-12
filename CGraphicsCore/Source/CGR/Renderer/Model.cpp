@@ -19,10 +19,14 @@ namespace Cgr
 		uint32_t verticesCount = mesh->mNumVertices;
 		vertices.reserve(verticesCount * sizeof(Vertex));
 
-		uint32_t m_IndicesCount = mesh->mNumFaces;
-		indices.reserve(m_IndicesCount * sizeof(uint32_t));
+		uint32_t indicesCount = mesh->mNumFaces;
+		indices.reserve(indicesCount * sizeof(uint32_t));
 
-		for (unsigned int i = 0; i < verticesCount; i++)
+		uint32_t materialIndex = mesh->mMaterialIndex;
+
+		CGR_CORE_TRACE("Name: {0}, Material index: {1}", mesh->mName.C_Str(), mesh->mMaterialIndex);
+
+		for (uint32_t i = 0; i < verticesCount; i++)
 		{
 			Vertex vertex;
 			// process vertex positions, normals and texture coordinates
@@ -50,7 +54,7 @@ namespace Cgr
 			vertices.push_back(vertex);
 		}
 		// process indices
-		for (uint32_t i = 0; i < m_IndicesCount; i++)
+		for (uint32_t i = 0; i < indicesCount; i++)
 		{
 			aiFace face = mesh->mFaces[i];
 			for (uint32_t j = 0; j < face.mNumIndices; j++)
@@ -59,7 +63,7 @@ namespace Cgr
 			}
 		}
 
-		return Mesh(vertices, indices);
+		return Mesh(vertices, indices, materialIndex);
 	}
 
 	static void processNode(Model& model, const aiNode* node, const aiScene* scene)
@@ -116,19 +120,38 @@ namespace Cgr
 		loadMeshAsset(*this, modelPath);
 	}
 
-	void Model::SetMaterial(uint32_t meshIndex, Ref<Material> material)
+	void Model::AddMaterial(Ref<Material> material)
 	{
-		m_Meshes[meshIndex].SetMaterial(material);
+		m_Materials.emplace_back(material);
 	}
 
-	void Model::DrawModel(const Ref<VertexArray> vertexArray, const BufferLayout& layout, Ref<ShaderStorageBuffer> SSBO) const
+	void Model::AddMaterial(Ref<Shader> shader)
 	{
+		auto material = Material::Create(shader);
+		m_Materials.emplace_back(material);
+	}
+
+	void Model::SetMaterial(uint32_t meshIndex, Ref<Material> material)
+	{
+		m_Materials[meshIndex] = material;
+	}
+
+	void Model::DrawModel(const Ref<VertexArray> vertexArray, const BufferLayout& layout, Ref<ShaderStorageBuffer> SSBO)
+	{
+		int currentMatIdx = -1;
 		for (auto& mesh : m_Meshes)
 		{
 			mesh.GetVertexBuffer()->Bind();
 			mesh.GetIndexBuffer()->Bind();
 			vertexArray->SetBufferLayout(layout);
-			mesh.GetMaterial()->UpdateSSBOParameters(SSBO);
+
+			if (currentMatIdx != mesh.GetMaterialIndex())
+			{
+				currentMatIdx = mesh.GetMaterialIndex();
+				auto material = GetMaterial(currentMatIdx);
+				material->GetShader()->Bind();
+				material->UpdateSSBOParameters(SSBO);
+			}
 
 			glDrawElements(GL_TRIANGLES, mesh.GetIndexCount(), GL_UNSIGNED_INT, nullptr);
 		}
@@ -139,11 +162,11 @@ namespace Cgr
 		return CreateRef<Model>(modelPath);
 	}
 
-	Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices)
-		: m_Vertices(vertices), m_Indices(indices), m_IndicesCount(static_cast<uint32_t>(indices.size()))
+	Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, uint32_t materialIndex)
+		: m_Vertices(vertices), m_Indices(indices), m_IndicesCount(static_cast<uint32_t>(indices.size())),
+		  m_MaterialIndex(materialIndex)
 	{
 		m_VertexBuffer = VertexBuffer::Create(m_Vertices.size() * sizeof(Vertex), m_Vertices.data());
 		m_IndexBuffer = IndexBuffer::Create(m_IndicesCount, m_Indices.data());
-		m_Material = Material::Create(Shader::Create("Content/Shader/Cube.glsl"));
 	}
 }

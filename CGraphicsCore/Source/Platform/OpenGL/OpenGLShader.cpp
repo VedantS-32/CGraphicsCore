@@ -72,8 +72,8 @@ namespace Cgr
 		return 0;
 	}
 
-	OpenGLShader::OpenGLShader(const std::string& shaderPath)
-		: m_ShaderPath(shaderPath)
+	OpenGLShader::OpenGLShader(const std::string& name, const std::string& shaderPath)
+		: m_Name(name), m_ShaderPath(shaderPath)
 	{
 		PrepareShader();
 	}
@@ -327,16 +327,16 @@ namespace Cgr
 				material->AddVariable<ShaderInt4>(varName, glm::ivec4{ 0 }, offset);
 				break;
 			case GL_FLOAT:
-				material->AddVariable<ShaderFloat>(varName, 0.0f, offset);
+				material->AddVariable<ShaderFloat>(varName, 1.0f, offset);
 				break;
 			case GL_FLOAT_VEC2:
-				material->AddVariable<ShaderFloat2>(varName, glm::vec2{ 0.0f }, offset);
+				material->AddVariable<ShaderFloat2>(varName, glm::vec2{ 1.0f }, offset);
 				break;
 			case GL_FLOAT_VEC3:
-				material->AddVariable<ShaderFloat3>(varName, glm::vec3{ 0.0f }, offset);
+				material->AddVariable<ShaderFloat3>(varName, glm::vec3{ 1.0f }, offset);
 				break;
 			case GL_FLOAT_VEC4:
-				material->AddVariable<ShaderFloat4>(varName, glm::vec4{ 0.0f }, offset);
+				material->AddVariable<ShaderFloat4>(varName, glm::vec4{ 1.0f }, offset);
 				break;
 			case GL_FLOAT_MAT3:
 				material->AddVariable<ShaderMat3>(varName, glm::mat3{ 1.0f }, offset);

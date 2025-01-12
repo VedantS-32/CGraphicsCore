@@ -43,6 +43,7 @@ namespace Cgr
 		virtual void SetMat4f(const std::string& name, const glm::mat4& matrix) = 0;
 
 		virtual uint32_t GetUniformLocation(const std::string& name) = 0;
+		virtual const std::string& GetName() = 0;
 
 		virtual void ExtractSSBOParameters(Material* material) = 0;
 		virtual void UpdateSSBOParameters(Material* material, Ref<ShaderStorageBuffer> SSBO) = 0;
@@ -53,7 +54,7 @@ namespace Cgr
 		virtual uint32_t GetRendererID() const = 0;
 
 	public:
-		static Ref<Shader> Create(const std::string& shaderPath);
+		static Ref<Shader> Create(const std::string& name, const std::string& shaderPath);
 	};
 
 	class CGR_API ShaderLibrary

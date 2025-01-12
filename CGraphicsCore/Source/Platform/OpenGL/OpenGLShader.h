@@ -11,7 +11,7 @@ namespace Cgr
 	class OpenGLShader : public Shader
 	{
 	public:
-		OpenGLShader(const std::string& shaderPath);
+		OpenGLShader(const std::string& name, const std::string& shaderPath);
 
 		virtual void PrepareShader() override;
 
@@ -47,6 +47,8 @@ namespace Cgr
 		void UploadUniformMat3f(const std::string& name, const glm::mat3& matrix);
 		void UploadUniformMat4f(const std::string& name, const glm::mat4& matrix);
 
+		virtual const std::string& GetName() override { return m_Name; }
+
 		virtual void ExtractSSBOParameters(Material* material) override;
 		virtual void UpdateSSBOParameters(Material* material, Ref<ShaderStorageBuffer> SSBO) override;
 
@@ -64,6 +66,7 @@ namespace Cgr
 
 	private:
 		std::string m_ShaderPath;
+		std::string m_Name;
 		std::unordered_map<std::string, int> m_UniformLocationCache;
 
 	private:
