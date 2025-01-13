@@ -31,21 +31,26 @@ namespace Cgr
 			Vertex vertex;
 			// process vertex positions, normals and texture coordinates
 			glm::vec3 vector;
-			vector.x = (float)mesh->mVertices[i].x;
-			vector.y = (float)mesh->mVertices[i].y;
-			vector.z = (float)mesh->mVertices[i].z;
+			vector.x = static_cast<float>(mesh->mVertices[i].x);
+			vector.y = static_cast<float>(mesh->mVertices[i].y);
+			vector.z = static_cast<float>(mesh->mVertices[i].z);
 			vertex.Position = vector;
 
-			vector.x = (float)mesh->mNormals[i].x;
-			vector.y = (float)mesh->mNormals[i].y;
-			vector.z = (float)mesh->mNormals[i].z;
+			vector.x = static_cast<float>(mesh->mNormals[i].x);
+			vector.y = static_cast<float>(mesh->mNormals[i].y);
+			vector.z = static_cast<float>(mesh->mNormals[i].z);
 			vertex.Normal = vector;
+
+			vector.x = static_cast<float>(mesh->mTangents[i].x);
+			vector.y = static_cast<float>(mesh->mTangents[i].y);
+			vector.z = static_cast<float>(mesh->mTangents[i].z);
+			vertex.Tangent = vector;
 
 			if (mesh->mTextureCoords[0]) // does the mesh contain texture coordinates?
 			{
 				glm::vec2 vec;
-				vec.x = (float)mesh->mTextureCoords[0][i].x;
-				vec.y = (float)mesh->mTextureCoords[0][i].y;
+				vec.x = static_cast<float>(mesh->mTextureCoords[0][i].x);
+				vec.y = static_cast<float>(mesh->mTextureCoords[0][i].y);
 				vertex.TexCoord = vec;
 			}
 			else
@@ -149,7 +154,15 @@ namespace Cgr
 			{
 				currentMatIdx = mesh.GetMaterialIndex();
 				auto material = GetMaterial(currentMatIdx);
-				material->GetShader()->Bind();
+				auto shader = material->GetShader();
+				shader->Bind();
+				uint32_t i = 0;
+				for (auto& [name, texture] : material->GetAllTextures())
+				{
+					texture->BindActiveTexture(i);
+					shader->Set1i("uTextures", i, i);
+					i++;
+				}
 				material->UpdateSSBOParameters(SSBO);
 			}
 

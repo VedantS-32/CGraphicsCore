@@ -7,7 +7,7 @@ namespace Cgr
 {
 	enum class CGR_API ShaderDataType
 	{
-		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Bool
+		None = 0, Float, Float2, Float3, Float4, Mat3, Mat4, Int, Int2, Int3, Int4, Sampler2D, Bool
 	};
 
 #define SHADERVARIABLE_CLASS_TYPE() virtual const std::string& GetName() override { return m_Name; }\
@@ -165,6 +165,20 @@ namespace Cgr
 		std::string m_Name;
 		int64_t m_Offset = 0;
 		glm::ivec4 m_Variable;
+	};
+
+	class ShaderSampler2D : public ShaderVariable
+	{
+	public:
+		ShaderSampler2D(const std::string& name, int variable, int64_t offset)
+			: m_Name(name), m_Variable(variable), m_Offset(offset) {}
+		SHADERVARIABLE_CLASS_TYPE();
+
+	private:
+		ShaderDataType m_Type = ShaderDataType::Sampler2D;
+		std::string m_Name;
+		int64_t m_Offset = 0;
+		int m_Variable;
 	};
 
 	class ShaderBool : public ShaderVariable

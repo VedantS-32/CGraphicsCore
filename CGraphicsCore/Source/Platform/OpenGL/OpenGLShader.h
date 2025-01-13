@@ -4,6 +4,9 @@
 #include "CGR/Renderer/Shader.h"
 #include "CGR/Renderer/ShaderDataType.h"
 
+// Temp
+#include "CGR/Renderer/Texture.h"
+
 #include <glad/glad.h>
 
 namespace Cgr
@@ -21,6 +24,7 @@ namespace Cgr
 		virtual const std::string& GetPath() override;
 
 		virtual void Set1i(const std::string& name, int value) override;
+		virtual void Set1i(const std::string& name, int value, uint32_t offset) override;
 		virtual void Set2i(const std::string& name, const glm::uvec2& value) override;
 		virtual void Set3i(const std::string& name, const glm::uvec3& value) override;
 		virtual void Set4i(const std::string& name, const glm::uvec4& value) override;
@@ -34,6 +38,7 @@ namespace Cgr
 
 		// Set uniforms
 		void UploadUniform1i(const std::string& name, int value);
+		void UploadUniform1i(const std::string& name, int value, uint32_t offset);
 		void UploadUniform2i(const std::string& name, const glm::uvec2& value);
 		void UploadUniform3i(const std::string& name, const glm::uvec3& value);
 		void UploadUniform4i(const std::string& name, const glm::uvec4& value);

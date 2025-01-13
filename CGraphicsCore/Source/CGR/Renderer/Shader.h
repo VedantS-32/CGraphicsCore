@@ -31,6 +31,7 @@ namespace Cgr
 		virtual const std::string& GetPath() = 0;
 
 		virtual void Set1i(const std::string& name, int value) = 0;
+		virtual void Set1i(const std::string& name, int value, uint32_t offset) = 0;
 		virtual void Set2i(const std::string& name, const glm::uvec2& value) = 0;
 		virtual void Set3i(const std::string& name, const glm::uvec3& value) = 0;
 		virtual void Set4i(const std::string& name, const glm::uvec4& value) = 0;

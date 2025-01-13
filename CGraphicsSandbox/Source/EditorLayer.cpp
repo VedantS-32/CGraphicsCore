@@ -14,25 +14,14 @@ namespace Cgr
 	EditorLayer::EditorLayer(const std::string& layerName)
 		: Layer(layerName), m_ClearColor(0.5f, 0.5f, 0.5f, 1.0f), m_ViewportSize(1280, 720)
     {
-		m_BufferLayout =
-		{
-			{ShaderDataType::Float3, "aPosition"},
-			{ShaderDataType::Float3, "aNormal"},
-            {ShaderDataType::Float2, "aTexCoord"}
-		};
-
-        auto tempModel = Model::Create("Content/Model/Cube.obj");
 		m_VertexArray = VertexArray::Create();
-        m_VertexArray->SetBufferLayout(m_BufferLayout);
-        m_VertexArray->Unbind();
-        tempModel->~Model();
 
         m_SSBO = ShaderStorageBuffer::Create();
 
         m_ModelRenderer = ModelRenderer::Create(m_VertexArray, m_SSBO);
 
         m_VertexArray->Bind();
-        //m_ModelRenderer->AddModel("Content/Model/Cube.obj");
+        m_ModelRenderer->AddModel("Content/Model/Cube.obj");
         m_ModelRenderer->AddModel("Content/Model/Pot.fbx");
 
         m_Framebuffer = Framebuffer::Create();
@@ -162,6 +151,9 @@ namespace Cgr
         ImGui::End();
 
         ImGui::Begin("World Settings");
+        auto& pos = m_Camera.GetPosition();
+        auto txt = std::format("Camera position x:{}, y:{}, z:{}", pos.x, pos.y, pos.z);
+        ImGui::Text(txt.c_str());
         if (ImGui::ColorEdit4("Clear color", glm::value_ptr(m_ClearColor)))
             RenderCommand::SetClearColor(m_ClearColor);
         if(ImGui::ColorEdit3("AmbientLight", glm::value_ptr(m_ModelRenderer->m_AmbientLight)))
@@ -197,9 +189,30 @@ namespace Cgr
 
             ImGui::ListBox("Material", &meshIdx, meshList.data(), static_cast<int>(meshList.size()));
 
+            auto material = models[m_CurrentEntity]->GetMaterial(meshIdx);
 
-            auto& materialParams = models[m_CurrentEntity]->GetMaterial(meshIdx)->GetAllVariables();
+            auto& textures = material->GetAllTextures();
+            for (auto& texture : textures)
+            {
+                auto name = texture.first.c_str();
+                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+                ImGui::Text(name);
+                ImGui::ImageButton(name, reinterpret_cast<void*>(static_cast<uintptr_t>(texture.second->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
+                ImGui::PopStyleColor();
 
+                //if (ImGui::BeginDragDropTarget())
+                //{
+                //    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                //    {
+                //        const wchar_t* path = (const wchar_t*)payload->Data;
+                //        std::filesystem::path texturePath = std::filesystem::path(s_AssetPath) / path;
+                //        //texture = assetManager.LoadAsset<Texture2D>(texturePath.string());
+                //    }
+                //    ImGui::EndDragDropTarget();
+                //}
+            }
+
+            auto& materialParams = material->GetAllVariables();
             for (auto& param : materialParams)
             {
                 switch (param->GetType())
@@ -244,9 +257,7 @@ namespace Cgr
                 }
             }
         }
-        auto& pos = m_Camera.GetPosition();
-        auto txt = std::format("Camera position x:{}, y:{}, z:{}", pos.x, pos.y, pos.z);
-        ImGui::Text(txt.c_str());
+
         ImGui::End();
 
         ImGui::End();

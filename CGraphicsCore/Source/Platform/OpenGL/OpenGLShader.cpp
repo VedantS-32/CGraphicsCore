@@ -184,6 +184,11 @@ namespace Cgr
 		UploadUniform1i(name, value);
 	}
 
+	void OpenGLShader::Set1i(const std::string& name, int value, uint32_t offset)
+	{
+		UploadUniform1i(name, value, offset);
+	}
+
 	void OpenGLShader::Set2i(const std::string& name, const glm::uvec2& value)
 	{
 		UploadUniform2i(name, value);
@@ -237,6 +242,11 @@ namespace Cgr
 	void OpenGLShader::UploadUniform1i(const std::string& name, int value)
 	{
 		glUniform1i(GetUniformLocation(name), value);
+	}
+
+	void OpenGLShader::UploadUniform1i(const std::string& name, int value, uint32_t offset)
+	{
+		glUniform1i(GetUniformLocation(name) + offset, value);
 	}
 
 	void OpenGLShader::UploadUniform2i(const std::string& name, const glm::uvec2& value)
@@ -295,7 +305,7 @@ namespace Cgr
 		GLint values[3];
 		glGetProgramResourceiv(m_RendererID, GL_SHADER_STORAGE_BLOCK, 0, 3, properties, 3, nullptr, values);
 
-		CGR_CORE_INFO("Binding: {0}, Size: {1}, Active variables: {2}", values[0], values[1], values[2]);
+		//CGR_CORE_INFO("Binding: {0}, Size: {1}, Active variables: {2}", values[0], values[1], values[2]);
 
 		for (int i = 0; i < values[2]; i++)
 		{
@@ -310,7 +320,7 @@ namespace Cgr
 			GLenum type = varValues[0];
 			GLenum offset = varValues[1];
 
-			CGR_CORE_TRACE("Variable name: {0}, Type: {1}, Offset: {2}", varName, type, offset);
+			//CGR_CORE_TRACE("Variable name: {0}, Type: {1}, Offset: {2}", varName, type, offset);
 
 			switch (type)
 			{
@@ -344,8 +354,8 @@ namespace Cgr
 			case GL_FLOAT_MAT4:
 				material->AddVariable<ShaderMat4>(varName, glm::mat4{ 1.0f }, offset);
 				break;
-			case GL_SAMPLER_2D:
-				break;  // No default value needed for samplers
+			case GL_SAMPLER_2D: // SSBO doesn't allow sampler2D as parameter
+				break;
 			default:
 				CGR_CORE_ERROR("Unknown shader datatype variable name : {0}, GLType : {1}", varName, varValues[0]);
 				break;
@@ -399,7 +409,7 @@ namespace Cgr
 				size = 4 * 4;
 				break;
 			case Cgr::ShaderDataType::Bool:
-				size = 1;
+				size = 4;
 				break;
 			default:
 				break;
@@ -407,11 +417,6 @@ namespace Cgr
 
 			CGR_CORE_ASSERT(size, "Invalid shader parameter");
 			SSBO->SetData(offset, size, value);
-
-			//glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-
-			// Memory barrier to ensure GPU sees the updated data
-			//glMemoryBarrier(GL_SHADER_STORAGE_BARRIER_BIT);
 		}
 	}
 

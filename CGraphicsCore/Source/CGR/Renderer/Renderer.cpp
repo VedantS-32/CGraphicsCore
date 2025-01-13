@@ -5,43 +5,20 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+static float offset = 0.0f;
+
 namespace Cgr
 {
 	ModelRenderer::ModelRenderer(const Ref<VertexArray> vertexArray, Ref<ShaderStorageBuffer> SSBO)
-		: m_VertexArray(vertexArray), m_SSBO(SSBO), m_AmbientLight(0.25f, 0.25f, 0.25f), m_LightPosition(1.0f, 1.0f, 5.0f)
+		: m_VertexArray(vertexArray), m_SSBO(SSBO), m_AmbientLight(0.25f, 0.25f, 0.25f), m_LightPosition(1.0f, 1.0f, 40.0f)
 	{
-		//float verts[] =
-		//{
-		//	// Positions		// Normals			// TexCoord
-		//	1.0f, 1.0f, 1.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-		//	1.0f, 1.0f, 1.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f,
-		//	1.0f, 1.0f, 1.0f,   1.0f, 1.0f, 1.0f,   1.0f, 1.0f
-		//};
-		//uint32_t indices[] =
-		//{
-		//	0, 1, 2, 2, 3, 0,  // front face
-		//	4, 5, 6, 6, 7, 4,  // back face
-		//	0, 4, 5, 5, 1, 0,  // left face
-		//	1, 5, 6, 6, 2, 1,  // right face
-		//	4, 7, 3, 3, 0, 4,  // bottom face
-		//	2, 3, 7, 7, 6, 2  // top face
-		//};
-		//// Temporary vertex buffer for configuring vertex array layout
-		//auto tempVbo = VertexBuffer::Create(sizeof(verts), verts);
-		//auto tempIbo = IndexBuffer::Create(sizeof(indices) / sizeof(float), indices);
-
-		//auto tempModel = Model::Create("Content/Model/Pot.fbx");
-
 		m_BufferLayout =
 		{
 			{ShaderDataType::Float3, "aPosition"},
 			{ShaderDataType::Float3, "aNormal"},
-			{ShaderDataType::Float2, "aTexCoord"}
+			{ShaderDataType::Float2, "aTexCoord"},
+			{ShaderDataType::Float3, "aTangent"}
 		};
-
-		//m_VertexArray = VertexArray::Create();
-		//m_VertexArray->SetBufferLayout(bufferLayout);
-		//tempVbo->Unbind();
 
 		m_VertexArray->Bind();
 		m_WorldSettings = UniformBuffer::Create("WorldSettings");
@@ -58,11 +35,17 @@ namespace Cgr
 
 	void ModelRenderer::OnUpdate(Camera& camera)
 	{
-		//m_ShaderLibrary->Get("Cube")->Bind();
 		m_WorldSettings->SetData(0, sizeof(glm::vec3), glm::value_ptr(camera.GetPosition()));
 
 		m_ModelCommons->SetData(0, sizeof(glm::mat4), glm::value_ptr(camera.GetViewMatrix()));
 		m_ModelCommons->SetData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewProjectionMatrix()));
+
+		offset += 0.025f;
+		if (offset >= 360.0f)
+			offset = 0.0f;
+		m_LightPosition.x = 25 * glm::sin(offset);
+		m_LightPosition.y = 25 * glm::cos(offset);
+		m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_LightPosition));
 
 		for (auto& model : m_Models)
 		{
@@ -80,7 +63,6 @@ namespace Cgr
 			if (currentMatIdx != mesh.GetMaterialIndex())
 			{
 				model->AddMaterial(m_ShaderLibrary->Get("Phong"));
-				//CGR_CORE_TRACE("Added material to model, index: {0}", mesh.GetMaterialIndex());
 				currentMatIdx = mesh.GetMaterialIndex();
 				m_WorldSettings->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());
 				m_ModelCommons->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());

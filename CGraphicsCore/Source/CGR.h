@@ -10,6 +10,7 @@
 #include "CGR/Renderer/Buffer.h"
 #include "CGR/Renderer/VertexArray.h"
 #include "CGR/Renderer/Shader.h"
+#include "CGR/Renderer/Texture.h"
 #include "CGR/Renderer/Material.h"
 #include "CGR/Renderer/Model.h"
 #include "CGR/Renderer/Framebuffer.h"
