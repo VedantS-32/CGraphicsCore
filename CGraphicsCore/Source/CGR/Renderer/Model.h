@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CGR/Asset/Asset.h"
 #include "Buffer.h"
 #include "VertexArray.h"
 #include "CGR/Core/Core.h"
@@ -40,9 +41,10 @@ namespace Cgr
 		uint32_t m_IndicesCount = 0;
 	};
 
-	class CGR_API Model
+	class CGR_API Model : public Asset
 	{
 	public:
+		Model() = default;
 		Model(const std::string& modelPath);
 		~Model() {}
 
@@ -57,8 +59,12 @@ namespace Cgr
 
 		void DrawModel(const Ref<VertexArray> vertexArray, const BufferLayout& layout, Ref<ShaderStorageBuffer> SSBO);
 
+		static AssetType GetStaticType() { return AssetType::Model; }
+		virtual AssetType GetType() const { return GetStaticType(); }
+
 	public:
 		static Ref<Model> Create(const std::string& modelPath);
+		static Ref<Model> Create();
 
 	private:
 		glm::mat4 m_ModelMatrix{ 1.0f };

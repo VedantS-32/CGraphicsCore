@@ -23,6 +23,23 @@ namespace Cgr
         return nullptr;
     }
 
+    Ref<Shader> Shader::Create(const std::unordered_map<ShaderType, std::string>& shaderSource)
+    {
+        switch (RendererAPI::GetAPI())
+        {
+        case Cgr::API::None:
+            CGR_CORE_ASSERT("No Graphics API selected");
+            break;
+        case Cgr::API::OpenGL:
+            return CreateRef<OpenGLShader>(shaderSource);
+            break;
+        default:
+            break;
+        }
+
+        return nullptr;
+    }
+
     ShaderLibrary::ShaderLibrary()
     {
         Add("Content/Shader/Cube.glsl");

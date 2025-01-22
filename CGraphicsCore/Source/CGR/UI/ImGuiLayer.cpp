@@ -21,6 +21,8 @@ namespace Cgr
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		m_ImGuiContext = ImGui::CreateContext();
+		ImGui::SetCurrentContext(m_ImGuiContext);
+		//std::cout << "ImGui context core: " << ImGui::GetCurrentContext() << std::endl;
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
@@ -74,9 +76,9 @@ namespace Cgr
 	{
 	}
 
-	ImGuiContext& ImGuiLayer::GetImGuiContext()
+	ImGuiContext* ImGuiLayer::GetImGuiContext()
 	{
-		return *m_ImGuiContext;
+		return m_ImGuiContext;
 	}
 
 	void ImGuiLayer::Begin()

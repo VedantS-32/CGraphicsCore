@@ -40,12 +40,12 @@ namespace Cgr
 		m_ModelCommons->SetData(0, sizeof(glm::mat4), glm::value_ptr(camera.GetViewMatrix()));
 		m_ModelCommons->SetData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewProjectionMatrix()));
 
-		offset += 0.025f;
-		if (offset >= 360.0f)
-			offset = 0.0f;
-		m_LightPosition.x = 25 * glm::sin(offset);
-		m_LightPosition.y = 25 * glm::cos(offset);
-		m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_LightPosition));
+		//offset += 0.025f;
+		//if (offset >= 360.0f)
+		//	offset = 0.0f;
+		//m_LightPosition.x = 25 * glm::sin(offset);
+		//m_LightPosition.y = 25 * glm::cos(offset);
+		//m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_LightPosition));
 
 		for (auto& model : m_Models)
 		{

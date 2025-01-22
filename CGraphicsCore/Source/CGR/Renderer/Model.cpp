@@ -24,7 +24,7 @@ namespace Cgr
 
 		uint32_t materialIndex = mesh->mMaterialIndex;
 
-		CGR_CORE_TRACE("Name: {0}, Material index: {1}", mesh->mName.C_Str(), mesh->mMaterialIndex);
+		CGR_CORE_INFO("Name: {0}, Material index: {1}", mesh->mName.C_Str(), mesh->mMaterialIndex);
 
 		for (uint32_t i = 0; i < verticesCount; i++)
 		{
@@ -55,6 +55,7 @@ namespace Cgr
 			}
 			else
 				vertex.TexCoord = glm::vec2(0.0f, 0.0f);
+
 
 			vertices.push_back(vertex);
 		}
@@ -173,6 +174,11 @@ namespace Cgr
 	Ref<Model> Model::Create(const std::string& modelPath)
 	{
 		return CreateRef<Model>(modelPath);
+	}
+
+	Ref<Model> Model::Create()
+	{
+		return CreateRef<Model>();
 	}
 
 	Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<uint32_t>& indices, uint32_t materialIndex)

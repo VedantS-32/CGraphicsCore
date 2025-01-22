@@ -17,7 +17,7 @@ namespace Cgr
 		virtual void OnUIRender() override;
 		virtual void OnEvent(Event& e) override;
 
-		ImGuiContext& GetImGuiContext();
+		ImGuiContext* GetImGuiContext();
 
 	public:
 		void Begin();

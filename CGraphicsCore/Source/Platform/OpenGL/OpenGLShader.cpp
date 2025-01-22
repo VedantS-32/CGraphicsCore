@@ -26,6 +26,8 @@ namespace Cgr
 
 	GLenum OpenGLShader::ToOpenGLShaderType(ShaderType type)
 	{
+		glm::vec3 v1 = { 1.0f, 2.0f, 2.0f };
+		
 		switch (type)
 		{
 		case Cgr::ShaderType::Vertex:
@@ -76,6 +78,11 @@ namespace Cgr
 		: m_Name(name), m_ShaderPath(shaderPath)
 	{
 		PrepareShader();
+	}
+
+	OpenGLShader::OpenGLShader(const std::unordered_map<ShaderType, std::string>& shaderSources)
+	{
+		CompileShaders(shaderSources);
 	}
 
 	void OpenGLShader::PrepareShader()

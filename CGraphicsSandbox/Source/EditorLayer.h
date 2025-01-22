@@ -2,6 +2,8 @@
 
 #include <CGR.h>
 
+#include "Panel/ContentBrowserPanel.h"
+
 #include <glm/glm.hpp>
 
 namespace Cgr
@@ -10,6 +12,7 @@ namespace Cgr
 	{
 	public:
 		EditorLayer(const std::string& layerName);
+		~EditorLayer();
 
 		virtual void OnAttach() override;
 		virtual void OnDetach() override { CGR_TRACE("Detached {0} layer", m_LayerName); }
@@ -33,6 +36,8 @@ namespace Cgr
 		Ref<ShaderStorageBuffer> m_SSBO;
 		Ref<ModelRenderer> m_ModelRenderer;
 
+		AssetManager* m_AssetManager;
+
 		glm::vec4 m_ClearColor;
 		glm::vec2 m_ViewportSize;
 		glm::vec2 m_ViewportBounds[2];
@@ -41,5 +46,8 @@ namespace Cgr
 
 		int m_PreviousEntity = -1;
 		int m_CurrentEntity = -1;
+
+		// Panels
+		ContentBrowserPanel* m_ContentBrowserPanel;
 	};
 }

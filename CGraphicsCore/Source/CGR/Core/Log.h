@@ -26,7 +26,6 @@ namespace Cgr
 #define CGR_CORE_WARN(...)	::Cgr::Log::GetCoreLogger()->warn(__VA_ARGS__);
 #define CGR_CORE_ERROR(...)	::Cgr::Log::GetCoreLogger()->error(__VA_ARGS__);
 #define CGR_CORE_FATAL(...)	::Cgr::Log::GetCoreLogger()->fatal(__VA_ARGS__);
-
 //Client log macros
 #define CGR_TRACE(...)	::Cgr::Log::GetClientLogger()->trace(__VA_ARGS__);
 #define CGR_INFO(...)	::Cgr::Log::GetClientLogger()->info(__VA_ARGS__);

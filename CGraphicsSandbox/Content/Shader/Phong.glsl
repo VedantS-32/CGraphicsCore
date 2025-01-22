@@ -31,6 +31,7 @@ layout(std430, binding = 1) buffer MaterialParameters
 	vec3 uSpecularColor;
 	float uSpecularAlpha;
 	float uTiling;
+	vec3 uTint;
 };
 
 out VS_OUTWorldSettings
@@ -47,6 +48,7 @@ out VS_OUTMaterialParams
 	vec3 SpecularColor;
 	float SpecularAlpha;
 	float Tiling;
+	vec3 Tint;
 } vMaterialParams;
 
 out VS_OUTModelProps
@@ -80,6 +82,7 @@ void main()
 	vMaterialParams.SpecularColor = uSpecularColor;
 	vMaterialParams.SpecularAlpha = uSpecularAlpha;
 	vMaterialParams.Tiling = uTiling;
+	vMaterialParams.Tint = uTint;
 
 	vModelProps.TexCoord = aTexCoord;
 	vModelProps.Normal = aNormal;
@@ -110,6 +113,7 @@ in VS_OUTMaterialParams
 	vec3 SpecularColor;
 	float SpecularAlpha;
 	float Tiling;
+	vec3 Tint;
 } vMaterialParams;
 
 in VS_OUTModelProps
@@ -137,7 +141,7 @@ void main()
 
 	//FragColor = vec4(normal, 1.0);
 	//FragColor = vec4(vColor, 1.0) * (vIntensity * (diffuse + ((vec4(vSpecularColor, 1.0) * pow(blinn, vSpecularAlpha)))) + vec4(vAmbientColor, 1.0));
-	FragColor = texture(uTextures[0], vModelProps.TexCoord * vMaterialParams.Tiling) *
+	FragColor = (texture(uTextures[0], vModelProps.TexCoord * vMaterialParams.Tiling) * vec4(vMaterialParams.Tint, 1.0)) *
 	(vMaterialParams.Intensity * (diffuse + ((vec4(vMaterialParams.SpecularColor, 1.0) *
 	pow(blinn, vMaterialParams.SpecularAlpha)))) + ambient);
 }

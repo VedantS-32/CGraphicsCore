@@ -29,11 +29,19 @@ namespace Cgr
 		RenderCommand::SetClearColor(m_ClearColor);
 
         transform = glm::translate(glm::mat4(1.0f), sPos);
+
+        m_AssetManager = Application::Get().GetAssetManager();
 	}
+
+    EditorLayer::~EditorLayer()
+    {
+        delete m_ContentBrowserPanel;
+    }
 
     void EditorLayer::OnAttach()
     {
         CGR_TRACE("Attached {0} layer", m_LayerName);
+        m_ContentBrowserPanel = new ContentBrowserPanel;
         m_Camera.SetPerspective(60.0f);
         //m_Camera.SetOrthographic(10.0f);
     }
@@ -110,6 +118,8 @@ namespace Cgr
 
         style.WindowMinSize.x = minWinSizeX;
 
+        m_ContentBrowserPanel->OnImGuiRender();
+
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
 
@@ -127,10 +137,10 @@ namespace Cgr
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         if ((m_ViewportSize != *((glm::vec2*)&viewportSize)) && (viewportSize.x > 0 && viewportSize.y > 0))
         {
-            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             //CGR_INFO("Viewport resized: {0}, {1}", m_ViewportSize.x, m_ViewportSize.y);
             m_ViewportSize = { viewportSize.x, viewportSize.y };
             m_Camera.SetViewportAspectRatio(viewportSize.x, viewportSize.y);
+            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
 
         uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
@@ -200,16 +210,15 @@ namespace Cgr
                 ImGui::ImageButton(name, reinterpret_cast<void*>(static_cast<uintptr_t>(texture.second->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
                 ImGui::PopStyleColor();
 
-                //if (ImGui::BeginDragDropTarget())
-                //{
-                //    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                //    {
-                //        const wchar_t* path = (const wchar_t*)payload->Data;
-                //        std::filesystem::path texturePath = std::filesystem::path(s_AssetPath) / path;
-                //        //texture = assetManager.LoadAsset<Texture2D>(texturePath.string());
-                //    }
-                //    ImGui::EndDragDropTarget();
-                //}
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
+                        texture.second = m_AssetManager->GetAsset<Texture2D>(handle);
+                    }
+                    ImGui::EndDragDropTarget();
+                }
             }
 
             auto& materialParams = material->GetAllVariables();

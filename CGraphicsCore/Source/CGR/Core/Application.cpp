@@ -30,8 +30,15 @@ namespace Cgr
 
         m_EventManager = EventManager(&m_LayerStack);
 
-        m_ImGuiLayer = new ImGuiLayer();
+        m_ImGuiLayer = new ImGuiLayer;
+        m_AssetManager = new AssetManager;
         PushOverlay(m_ImGuiLayer);
+    }
+
+    Application::~Application()
+    {
+        delete m_ImGuiLayer;
+        delete m_AssetManager;
     }
 
     void Application::PushLayer(Layer* layer)

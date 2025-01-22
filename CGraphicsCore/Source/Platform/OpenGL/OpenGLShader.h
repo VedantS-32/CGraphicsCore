@@ -15,6 +15,7 @@ namespace Cgr
 	{
 	public:
 		OpenGLShader(const std::string& name, const std::string& shaderPath);
+		OpenGLShader(const std::unordered_map<ShaderType, std::string>& shaderSources);
 
 		virtual void PrepareShader() override;
 

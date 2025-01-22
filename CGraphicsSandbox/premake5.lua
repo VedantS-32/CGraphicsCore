@@ -19,12 +19,12 @@ project "CGraphicsSandbox"
 	}
 
 	includedirs {
+		"Source",
 		"%{wks.location}/CGraphicsCore/Source",
-		"%{wks.location}/CGraphicsCore",
         "%{IncludeDir.spdlog}",
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.imgui}",
-		"%{IncludeDir.ImGuizmo}"
+		"%{IncludeDir.ImGuizmo}",
 	}
 
 	links {

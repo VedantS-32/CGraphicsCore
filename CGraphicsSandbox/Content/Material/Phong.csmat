@@ -1,0 +1,7 @@
+Material: Phong
+Shader: Content/Shader/Phong.glsl
+Textures:
+  Diffuse: Content/Texture/MossyCobble/MossyCobbleDiffuse.jpg
+  Normal: Content/Texture/MossyCobble/MossyCobbleNormal.jpg
+Attributes:
+  
