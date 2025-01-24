@@ -2,6 +2,7 @@
 #include "Renderer.h"
 
 #include "Camera.h"
+#include "CGR/Core/Application.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -57,12 +58,18 @@ namespace Cgr
 	void ModelRenderer::AddModel(const std::string& modelPath)
 	{
 		auto model = Model::Create(modelPath);
+
+		// TODO: Temporary solution remove after completing model importer
+		auto assetManager = Application::Get().GetAssetManager();
+		auto materialHandle = assetManager->GetDefaultAssetHandle(AssetType::Material);
+		auto material = assetManager->GetAsset<Material>(materialHandle);
+
 		int currentMatIdx = -1;
 		for (auto& mesh : model->GetMeshes())
 		{
 			if (currentMatIdx != mesh.GetMaterialIndex())
 			{
-				model->AddMaterial(m_ShaderLibrary->Get("Phong"));
+				model->AddMaterial(material);
 				currentMatIdx = mesh.GetMaterialIndex();
 				m_WorldSettings->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());
 				m_ModelCommons->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());

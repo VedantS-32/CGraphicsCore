@@ -201,6 +201,35 @@ namespace Cgr
 
             auto material = models[m_CurrentEntity]->GetMaterial(meshIdx);
 
+            auto& name = material->Name;
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            ImGui::Text(name.c_str());
+            const auto& iconMap = m_ContentBrowserPanel->GetIconMap();
+            ImGui::ImageButton(name.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Material")->GetRendererID())), {98, 98}, {0, 1}, {1, 0});
+            ImGui::PopStyleColor();
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
+                    models[m_CurrentEntity]->SetMaterial(meshIdx, m_AssetManager->GetAsset<Material>(handle));
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            if (ImGui::Button("Save", { 100, 24 }))
+            {
+                MaterialSerializer serializer(material);
+                serializer.Serialize("Content/Material/Phong2.csmat");
+            }
+
+            if (ImGui::Button("Load", { 100, 24 }))
+            {
+                MaterialSerializer serializer(material);
+                serializer.Deserialize("Content/Material/Phong2.csmat");
+            }
+
             auto& textures = material->GetAllTextures();
             for (auto& texture : textures)
             {

@@ -36,14 +36,16 @@ project "CGraphicsCore"
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.stb_image}",
-		"%{IncludeDir.assimp}"
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.yaml_cpp}"
 	}
 
 	links {
 		"glfw",
 		"imgui",
 		"ImGuizmo",
-		"assimp"
+		"assimp",
+		"yaml-cpp"
 	}
 
 	postbuildcommands {

@@ -32,6 +32,7 @@ namespace Cgr
 
         m_ImGuiLayer = new ImGuiLayer;
         m_AssetManager = new AssetManager;
+        m_AssetManager->LoadDefaultAssets();
         PushOverlay(m_ImGuiLayer);
     }
 

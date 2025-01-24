@@ -17,7 +17,7 @@ namespace Cgr
 	{
 	public:
 		AssetManager();
-		void LoadDefaultAssets(const std::filesystem::path& filePath);
+		void LoadDefaultAssets();
 
 		template<typename T>
 		Ref<T> GetAsset(AssetHandle handle)
@@ -55,6 +55,7 @@ namespace Cgr
 		const std::filesystem::path& GetFilePath(AssetHandle handle);
 
 		const AssetRegistry& GetAssetRegistry();
+		const AssetHandle GetAssetHandleFromRegistry(const std::filesystem::path& filePath);
 		const AssetMap& GetLoadedAssets();
 		AssetHandle GetDefaultAssetHandle(AssetType type) { return m_DefaultAssets[type]; }
 		const DefaultAssets& GetDefaultAssetHandles();

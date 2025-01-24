@@ -11,13 +11,15 @@ namespace Cgr
 		: m_CurrentDirectory(s_AssetPath)
 	{
 		auto assetManager = Application::Get().GetAssetManager();
+
 		auto handle = assetManager->ImportAsset("Content/Icon/ContentBrowser/Folder.png");
-		m_DirectoryIcon = assetManager->GetAsset<Texture2D>(handle);
-		m_DirectoryIconHandle = handle;
+		m_IconMap["Folder"] = assetManager->GetAsset<Texture2D>(handle);
 		handle = assetManager->ImportAsset("Content/Icon/ContentBrowser/File.png");
-		m_FileIcon = assetManager->GetAsset<Texture2D>(handle);
-		m_FileIconHandle = handle;
-		m_Handle = handle;
+		m_IconMap["File"] = assetManager->GetAsset<Texture2D>(handle);
+		handle = assetManager->ImportAsset("Content/Icon/ContentBrowser/Material.png");
+		m_IconMap["Material"] = assetManager->GetAsset<Texture2D>(handle);
+
+		m_Handle = m_IconMap["Folder"]->Handle;
 	}
 
 	void ContentBrowserPanel::OnImGuiRender()
@@ -54,36 +56,46 @@ namespace Cgr
 			ImGui::PushID(filenameString.c_str());
 
 			auto extension = directoryEntry.path().filename().extension().string();
+			std::filesystem::path assetPath = std::filesystem::path(s_AssetPath) / relativePath;
 
 			Ref<Texture2D> icon;
 			auto assetManager = Application::Get().GetAssetManager();
 
 			if (directoryEntry.is_directory())
 			{
-				icon = m_DirectoryIcon;
-				m_Handle = m_DirectoryIconHandle;
+				icon = m_IconMap["Folder"];
+				m_Handle = icon->Handle;
 			}
 			else
 			{
-				if(extension == ".png" || extension == ".jpg")
+				if(extension == ".csmat")
 				{
-					std::filesystem::path texturePath = std::filesystem::path(s_AssetPath) / relativePath;
-					m_Handle = assetManager->ImportAsset(texturePath);
+					assetManager->ImportAsset(assetPath);
+					icon = m_IconMap["Material"];
+					m_Handle = icon->Handle;
+				}
+				else if(extension == ".png" || extension == ".jpg")
+				{
+					m_Handle = assetManager->ImportAsset(assetPath);
 					icon = assetManager->GetAsset<Texture2D>(m_Handle);
 				}
 				else
 				{
-					icon = m_FileIcon;
-					m_Handle = m_FileIconHandle;
+					icon = m_IconMap["File"];
+					m_Handle = icon->Handle;
 				}
 			}
 			ImGui::ImageButton("FilePreview", reinterpret_cast<void*>(static_cast<uintptr_t>(icon->GetRendererID())), {thumbnailSize, thumbnailSize}, {0, 1}, {1, 0});
 
-			if (ImGui::BeginDragDropSource())
+			auto assetHandle = assetManager->GetAssetHandleFromRegistry(assetPath);
+			if (assetHandle)
 			{
-				ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", m_Handle.ValuePtr(), sizeof(uint64_t), ImGuiCond_Once);
-				ImGui::Image(reinterpret_cast<void*>(static_cast<uintptr_t>(icon->GetRendererID())), { dragDropPreviewSize, dragDropPreviewSize }, { 0, 1 }, { 1, 0 });
-				ImGui::EndDragDropSource();
+				if (ImGui::BeginDragDropSource())
+				{
+					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", assetHandle.ValuePtr(), sizeof(uint64_t), ImGuiCond_Once);
+					ImGui::Image(reinterpret_cast<void*>(static_cast<uintptr_t>(icon->GetRendererID())), { dragDropPreviewSize, dragDropPreviewSize }, { 0, 1 }, { 1, 0 });
+					ImGui::EndDragDropSource();
+				}
 			}
 
 			if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))

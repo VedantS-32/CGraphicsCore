@@ -17,3 +17,5 @@
 #include "CGR/Renderer/Framebuffer.h"
 #include "CGR/Renderer/Camera.h"
 #include "CGR/Renderer/Renderer.h"
+
+#include "CGR/Asset/Serializer/MaterialSerializer.h"

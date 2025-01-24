@@ -1,7 +1,13 @@
-Material: Phong
-Shader: Content/Shader/Phong.glsl
+Asset: 9120293482567401645
+Material: "Phong"
+Shader: "Content/Shader/Phong.glsl"
 Textures:
-  Diffuse: Content/Texture/MossyCobble/MossyCobbleDiffuse.jpg
-  Normal: Content/Texture/MossyCobble/MossyCobbleNormal.jpg
+  Diffuse: "Content/Texture/MossyCobble/MossyCobbleDiffuse.jpg"
+  Normal: "Content/Texture/MossyCobble/MossyCobbleNormal.jpg"
 Attributes:
-  
+  uColor: [1, 1, 1]
+  uIntensity: 1
+  uSpecularAlpha: 1
+  uSpecularColor: [1, 1, 1]
+  uTiling: 1
+  uTint: [1, 1, 1]

@@ -32,28 +32,28 @@ namespace Cgr
     }
     AssetManager::AssetManager()
     {
+        //LoadDefaultAssets();
+    }
+
+    void AssetManager::LoadDefaultAssets()
+    {
         std::vector<std::string> defaultAssets =
         {
             "Content/Texture/UVChecker.png",
             "Content/Icon/CStell.png",
             "Content/Shader/Phong.glsl",
-            //"Content/Material/Phong.csmat",
+            "Content/Material/Phong2.csmat",
             //"Content/Model/Cube.obj"
         };
 
         for (auto& path : defaultAssets)
         {
-            LoadDefaultAssets(path);
+            AssetHandle handle = ImportAsset(path);
+            if (handle)
+                m_DefaultAssets[GetAssetType(handle)] = handle;
+            else
+                CGR_CORE_ERROR("Couldn't import default asset!");
         }
-    }
-
-    void AssetManager::LoadDefaultAssets(const std::filesystem::path& filePath)
-    {
-        AssetHandle handle = ImportAsset(filePath);
-        if (handle)
-            m_DefaultAssets[GetAssetType(handle)] = handle;
-        else
-            CGR_CORE_ERROR("Couldn't import default asset!");
     }
 
     AssetType AssetManager::GetAssetType(AssetHandle handle)
@@ -94,6 +94,7 @@ namespace Cgr
         if(asset)
         {
             asset->Handle = handle;
+            asset->Name = filePath.filename().string();
             m_LoadedAssets[handle] = asset;
             m_AssetRegistry[handle] = metadata;
         }
@@ -113,6 +114,18 @@ namespace Cgr
     const AssetRegistry& AssetManager::GetAssetRegistry()
     {
         return m_AssetRegistry;
+    }
+
+    const AssetHandle AssetManager::GetAssetHandleFromRegistry(const std::filesystem::path& filePath)
+    {
+        for (auto& [assetHandle, metadata] : m_AssetRegistry)
+        {
+            if (metadata.Path == filePath)
+            {
+                return assetHandle;
+            }
+        }
+        return 0;
     }
 
     const AssetMap& AssetManager::GetLoadedAssets()

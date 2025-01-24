@@ -54,8 +54,8 @@ namespace Cgr
 
 		void AddMaterial(Ref<Material> material);
 		void AddMaterial(Ref<Shader> shader);
-		void SetMaterial(uint32_t materialIndex, Ref<Material> material);
-		Ref<Material> GetMaterial(uint32_t materialIndex) { return m_Materials.at(materialIndex); }
+		void SetMaterial(uint32_t meshIndex, Ref<Material> material);
+		Ref<Material> GetMaterial(uint32_t meshIndex) { return m_Materials.at(meshIndex); }
 
 		void DrawModel(const Ref<VertexArray> vertexArray, const BufferLayout& layout, Ref<ShaderStorageBuffer> SSBO);
 

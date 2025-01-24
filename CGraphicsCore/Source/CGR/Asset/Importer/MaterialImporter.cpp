@@ -1,6 +1,8 @@
 #include "CGRpch.h"
 #include "MaterialImporter.h"
 
+#include "CGR/Asset/Serializer/MaterialSerializer.h"
+
 namespace Cgr
 {
     Ref<Material> MaterialImporter::ImportMaterial(AssetHandle handle, const AssetMetadata& metadata)
@@ -12,6 +14,8 @@ namespace Cgr
     {
         auto material = Material::Create();
         CGR_CORE_INFO("Imported Material asset, path: {0}", filePath.string());
+        MaterialSerializer serializer(material);
+        serializer.Deserialize(filePath);
         return material;
     }
 }

@@ -20,7 +20,9 @@ namespace Cgr
 	class CGR_API Asset
 	{
 	public:
+
 		AssetHandle Handle;
+		std::string Name;
 		virtual AssetType GetType() const = 0;
 	};
 }

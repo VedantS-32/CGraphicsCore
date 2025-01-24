@@ -4,9 +4,15 @@
 
 namespace Cgr
 {
-	class MaterialSerializer
+	class CGR_API MaterialSerializer
 	{
 	public:
-		void Serialize(Ref<Material> material);
+		MaterialSerializer(Ref<Material> material);
+
+		void Serialize(const std::filesystem::path& path);
+		void Deserialize(const std::filesystem::path& path);
+
+	private:
+		Ref<Material> m_Material;
 	};
 }

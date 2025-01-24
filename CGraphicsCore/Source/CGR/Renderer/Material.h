@@ -26,7 +26,7 @@ namespace Cgr
 			m_ShaderVariables.emplace_back(variable);
 		}
 
-		const std::vector<Ref<ShaderVariable>>& GetAllVariables() { return m_ShaderVariables; }
+		std::vector<Ref<ShaderVariable>>& GetAllVariables() { return m_ShaderVariables; }
 		std::unordered_map<std::string, Ref<Texture>>& GetAllTextures() { return m_Textures; }
 
 		void AddTexture(const std::string& name, Ref<Texture> texture) { m_Textures[name] = texture; }

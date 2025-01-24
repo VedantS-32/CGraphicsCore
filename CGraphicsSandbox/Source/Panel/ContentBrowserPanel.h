@@ -6,20 +6,18 @@
 
 namespace Cgr
 {
+	using IconMap = std::map<std::string, Ref<Texture2D>>;
 	class ContentBrowserPanel
 	{
 	public:
 		ContentBrowserPanel();
 
 		void OnImGuiRender();
+		const IconMap& GetIconMap() const { return m_IconMap; }
 
 	private:
 		std::filesystem::path m_CurrentDirectory;
-
-		Ref<Texture2D> m_DirectoryIcon;
-		AssetHandle m_DirectoryIconHandle;
-		Ref<Texture2D> m_FileIcon;
-		AssetHandle m_FileIconHandle;
 		AssetHandle m_Handle;
+		IconMap m_IconMap;
 	};
 }
