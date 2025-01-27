@@ -1,0 +1,12 @@
+Asset: 9120293482567401645
+Material: "Phong"
+Shader: "Content/Shader/Default.glsl"
+Textures:
+  Diffuse: "Content/Texture/UVChecker.png"
+Attributes:
+  uColor: [1, 1, 1]
+  uIntensity: 1
+  uSpecularAlpha: 1
+  uSpecularColor: [1, 1, 1]
+  uTiling: 1
+  uTint: [1, 1, 1]

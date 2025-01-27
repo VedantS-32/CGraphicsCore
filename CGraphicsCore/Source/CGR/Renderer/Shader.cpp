@@ -23,9 +23,26 @@ namespace Cgr
         return nullptr;
     }
 
+    Ref<Shader> Shader::Create(const std::unordered_map<ShaderType, std::string>& shaderSource, const std::filesystem::path path)
+    {
+        switch (RendererAPI::GetAPI())
+        {
+        case Cgr::API::None:
+            CGR_CORE_ASSERT("No Graphics API selected");
+            break;
+        case Cgr::API::OpenGL:
+            return CreateRef<OpenGLShader>(shaderSource, path);
+            break;
+        default:
+            break;
+        }
+
+        return nullptr;
+    }
+
     ShaderLibrary::ShaderLibrary()
     {
-        Add("Content/Shader/Cube.glsl");
+        //Add("Content/Shader/Cube.glsl");
     }
 
     void ShaderLibrary::Add(const std::string& shaderPath)
@@ -46,16 +63,16 @@ namespace Cgr
 
     void ShaderLibrary::Add(Ref<Shader> shader)
     {
-        auto& shaderPath = shader->GetPath();
+        //auto& shaderPath = shader->GetPath();
 
-        auto lastSlash = shaderPath.find_last_of("/\\");
-        lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
-        auto lastDot = shaderPath.rfind('.');
-        auto count = lastDot == std::string::npos ? shaderPath.size() - lastSlash : lastDot - lastSlash;
-        auto name = shaderPath.substr(lastSlash, count);
+        //auto lastSlash = shaderPath.find_last_of("/\\");
+        //lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+        //auto lastDot = shaderPath.rfind('.');
+        //auto count = lastDot == std::string::npos ? shaderPath.size() - lastSlash : lastDot - lastSlash;
+        //auto name = shaderPath.substr(lastSlash, count);
 
-        if (!Exists(name))
-            Add(name, shader);
+        //if (!Exists(name))
+        //    Add(name, shader);
     }
 
     void ShaderLibrary::Add(const std::string& name, Ref<Shader> shader)

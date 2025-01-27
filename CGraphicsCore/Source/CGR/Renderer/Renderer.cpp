@@ -2,6 +2,7 @@
 #include "Renderer.h"
 
 #include "Camera.h"
+#include "CGR/Core/Application.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -29,8 +30,8 @@ namespace Cgr
 		m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_AmbientLight));
 		m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_LightPosition));
 
-		m_ShaderLibrary = ShaderLibrary::Create();
-		m_ShaderLibrary->Add("Content/Shader/Phong.glsl");
+		//m_ShaderLibrary = ShaderLibrary::Create();
+		//m_ShaderLibrary->Add("Content/Shader/Phong.glsl");
 	}
 
 	void ModelRenderer::OnUpdate(Camera& camera)
@@ -40,12 +41,12 @@ namespace Cgr
 		m_ModelCommons->SetData(0, sizeof(glm::mat4), glm::value_ptr(camera.GetViewMatrix()));
 		m_ModelCommons->SetData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewProjectionMatrix()));
 
-		offset += 0.025f;
-		if (offset >= 360.0f)
-			offset = 0.0f;
-		m_LightPosition.x = 25 * glm::sin(offset);
-		m_LightPosition.y = 25 * glm::cos(offset);
-		m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_LightPosition));
+		//offset += 0.025f;
+		//if (offset >= 360.0f)
+		//	offset = 0.0f;
+		//m_LightPosition.x = 25 * glm::sin(offset);
+		//m_LightPosition.y = 25 * glm::cos(offset);
+		//m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_LightPosition));
 
 		for (auto& model : m_Models)
 		{
@@ -54,15 +55,13 @@ namespace Cgr
 		}
 	}
 
-	void ModelRenderer::AddModel(const std::string& modelPath)
+	void ModelRenderer::AddModel(Ref<Model> model)
 	{
-		auto model = Model::Create(modelPath);
 		int currentMatIdx = -1;
 		for (auto& mesh : model->GetMeshes())
 		{
 			if (currentMatIdx != mesh.GetMaterialIndex())
 			{
-				model->AddMaterial(m_ShaderLibrary->Get("Phong"));
 				currentMatIdx = mesh.GetMaterialIndex();
 				m_WorldSettings->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());
 				m_ModelCommons->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());
@@ -72,10 +71,17 @@ namespace Cgr
 		m_Models.emplace_back(model);
 	}
 
-	void ModelRenderer::AddShader(const std::string& shaderPath)
+	void ModelRenderer::SetShaderBuffer(Ref<Shader> shader)
 	{
-		m_ShaderLibrary->Add(shaderPath);
+		m_WorldSettings->SetBlockBinding(shader->GetRendererID());
+		m_ModelCommons->SetBlockBinding(shader->GetRendererID());
+		m_ModelProps->SetBlockBinding(shader->GetRendererID());
 	}
+
+	//void ModelRenderer::AddShader(const std::string& shaderPath)
+	//{
+	//	//m_ShaderLibrary->Add(shaderPath);
+	//}
 
 	Ref<ModelRenderer> ModelRenderer::Create(const Ref<VertexArray> vertexArray, Ref<ShaderStorageBuffer> SSBO)
 	{

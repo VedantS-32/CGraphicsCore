@@ -1,0 +1,5 @@
+Asset: 8585409213423397070
+Model: Cube
+Source: Content/Model/Cube.obj
+Materials:
+  0: Content\Material\Phong2.csmat

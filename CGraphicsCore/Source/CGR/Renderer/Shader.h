@@ -2,6 +2,7 @@
 
 #include "CGR/Core/Core.h"
 #include "CGR/Renderer/ShaderDataType.h"
+#include "CGR/Asset/Asset.h"
 
 #include <glm/glm.hpp>
 #include <unordered_map>
@@ -17,7 +18,7 @@ namespace Cgr
 		None = 0, Vertex, Fragment, Geometry, Compute, Tessellation
 	};
 
-	class CGR_API Shader
+	class CGR_API Shader : public Asset
 	{
 	public:
 		virtual ~Shader() {}
@@ -28,7 +29,7 @@ namespace Cgr
 		virtual std::string ParseShader(const std::string& shaderPath) = 0;
 		virtual std::unordered_map<ShaderType, std::string> PreProcess(const std::string& source) = 0;
 		virtual void CompileShaders(const std::unordered_map<ShaderType, std::string>& shaderSources) = 0;
-		virtual const std::string& GetPath() = 0;
+		virtual void Recompile() = 0;
 
 		virtual void Set1i(const std::string& name, int value) = 0;
 		virtual void Set1i(const std::string& name, int value, uint32_t offset) = 0;
@@ -54,8 +55,12 @@ namespace Cgr
 
 		virtual uint32_t GetRendererID() const = 0;
 
+		static AssetType GetStaticType() { return AssetType::Shader; }
+		virtual AssetType GetType() const { return GetStaticType(); }
+
 	public:
 		static Ref<Shader> Create(const std::string& name, const std::string& shaderPath);
+		static Ref<Shader> Create(const std::unordered_map<ShaderType, std::string>& shaderSource, const std::filesystem::path path);
 	};
 
 	class CGR_API ShaderLibrary

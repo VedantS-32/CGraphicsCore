@@ -36,14 +36,16 @@ project "CGraphicsCore"
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.stb_image}",
-		"%{IncludeDir.assimp}"
+		"%{IncludeDir.assimp}",
+		"%{IncludeDir.yaml_cpp}"
 	}
 
 	links {
 		"glfw",
 		"imgui",
 		"ImGuizmo",
-		"assimp"
+		"assimp",
+		"yaml-cpp"
 	}
 
 	postbuildcommands {
@@ -57,7 +59,8 @@ project "CGraphicsCore"
 			"CGR_PLATFORM_WINDOWS",
 			"CGR_DYNAMIC_LINK",
 			"CGR_BUILD_DLL",
-			"GLFW_INCLUDE_NONE"
+			"GLFW_INCLUDE_NONE",
+			"YAML_CPP_STATIC_DEFINE"
 		}
 		links {
 			"Gdi32",
@@ -72,7 +75,8 @@ project "CGraphicsCore"
 			"CGR_PLATFORM_LINUX",
 			"CGR_DYNAMIC_LINK",
 			"CGR_BUILD_DLL",
-			"GLFW_INCLUDE_NONE"
+			"GLFW_INCLUDE_NONE",
+			"YAML_CPP_STATIC_DEFINE"
 		}
 
 	filter "system:macosx"
@@ -80,7 +84,8 @@ project "CGraphicsCore"
 			"CGR_PLATFORM_MACOSX",
 			"CGR_DYNAMIC_LINK",
 			"CGR_BUILD_DLL",
-			"GLFW_INCLUDE_NONE"
+			"GLFW_INCLUDE_NONE",
+			"YAML_CPP_STATIC_DEFINE"
 		}
 
 	filter "files:%{prj.name}/Vendor/ImGuizmo/**.cpp"

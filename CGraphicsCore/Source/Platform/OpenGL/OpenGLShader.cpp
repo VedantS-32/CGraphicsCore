@@ -1,6 +1,7 @@
 #include "CGRpch.h"
 #include "OpenGLShader.h"
 #include "CGR/Renderer/Material.h"
+#include "CGR/Core/Application.h"
 
 #include <glad/glad.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -26,6 +27,8 @@ namespace Cgr
 
 	GLenum OpenGLShader::ToOpenGLShaderType(ShaderType type)
 	{
+		glm::vec3 v1 = { 1.0f, 2.0f, 2.0f };
+		
 		switch (type)
 		{
 		case Cgr::ShaderType::Vertex:
@@ -78,9 +81,15 @@ namespace Cgr
 		PrepareShader();
 	}
 
+	OpenGLShader::OpenGLShader(const std::unordered_map<ShaderType, std::string>& shaderSources, const std::filesystem::path path)
+		: m_ShaderPath(path)
+	{
+		CompileShaders(shaderSources);
+	}
+
 	void OpenGLShader::PrepareShader()
 	{
-		const std::string& source = ParseShader(m_ShaderPath);
+		const std::string& source = ParseShader(m_ShaderPath.string());
 		const auto& shaderSources = PreProcess(source);
 		CompileShaders(shaderSources);
 	}
@@ -174,9 +183,43 @@ namespace Cgr
 		}
 	}
 
-	const std::string& OpenGLShader::GetPath()
+	void OpenGLShader::Recompile()
 	{
-		return m_ShaderPath;
+		uint32_t oldProgram = m_RendererID;
+
+		PrepareShaderForRecompile();
+
+		if (m_RendererID != 0)
+		{
+			glDeleteProgram(oldProgram);
+		}
+		else
+		{
+			m_RendererID = oldProgram;
+			CGR_CORE_ERROR("Shader recompilation failed, reverted to the old shader program.");
+		}
+	}
+
+	void OpenGLShader::PrepareShaderForRecompile()
+	{
+		const std::string& source = ParseShader(m_ShaderPath.string());
+		const auto& shaderSources = PreProcess(source);
+
+		uint32_t oldProgram = m_RendererID;
+
+		CompileShaders(shaderSources);
+
+		GLint success;
+		glGetProgramiv(m_RendererID, GL_LINK_STATUS, &success);
+		if (!success)
+		{
+			m_RendererID = oldProgram;
+			CGR_CORE_ERROR("Shader linking failed, reverted to the old shader program.");
+		}
+		else
+		{
+			glDeleteProgram(oldProgram);
+		}
 	}
 
 	void OpenGLShader::Set1i(const std::string& name, int value)
@@ -321,6 +364,9 @@ namespace Cgr
 			GLenum offset = varValues[1];
 
 			//CGR_CORE_TRACE("Variable name: {0}, Type: {1}, Offset: {2}", varName, type, offset);
+
+			if (material->HasVariable(varName))
+				return;
 
 			switch (type)
 			{

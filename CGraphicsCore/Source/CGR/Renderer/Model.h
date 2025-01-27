@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CGR/Asset/Asset.h"
 #include "Buffer.h"
 #include "VertexArray.h"
 #include "CGR/Core/Core.h"
@@ -40,30 +41,36 @@ namespace Cgr
 		uint32_t m_IndicesCount = 0;
 	};
 
-	class CGR_API Model
+	class CGR_API Model : public Asset
 	{
 	public:
+		Model() = default;
 		Model(const std::string& modelPath);
 		~Model() {}
 
-		const std::string& GetName() { return m_ModelName; }
+		const std::string& GetPath() { return m_ModelPath; }
+		void SetPath(const std::string& path) { m_ModelPath = path; }
 		glm::mat4& GetModelMatrix() { return m_ModelMatrix; }
 		std::vector<Mesh>& GetMeshes() { return m_Meshes; }
 
 		void AddMaterial(Ref<Material> material);
 		void AddMaterial(Ref<Shader> shader);
-		void SetMaterial(uint32_t materialIndex, Ref<Material> material);
-		Ref<Material> GetMaterial(uint32_t materialIndex) { return m_Materials.at(materialIndex); }
+		void SetMaterial(uint32_t meshIndex, Ref<Material> material);
+		std::vector<Ref<Material>>& GetAllMaterials() { return m_Materials; }
+		Ref<Material> GetMaterial(uint32_t meshIndex) { return m_Materials.at(meshIndex); }
 
 		void DrawModel(const Ref<VertexArray> vertexArray, const BufferLayout& layout, Ref<ShaderStorageBuffer> SSBO);
 
+		static AssetType GetStaticType() { return AssetType::Model; }
+		virtual AssetType GetType() const { return GetStaticType(); }
+
 	public:
 		static Ref<Model> Create(const std::string& modelPath);
+		static Ref<Model> Create();
 
 	private:
 		glm::mat4 m_ModelMatrix{ 1.0f };
 		std::string m_ModelPath;
-		std::string m_ModelName;
 		std::vector<Mesh> m_Meshes;
 		std::vector<Ref<Material>> m_Materials;
 	};

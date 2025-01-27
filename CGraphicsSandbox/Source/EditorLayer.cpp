@@ -3,6 +3,7 @@
 #include "CGR.h"
 
 #include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Cgr
@@ -19,21 +20,33 @@ namespace Cgr
         m_SSBO = ShaderStorageBuffer::Create();
 
         m_ModelRenderer = ModelRenderer::Create(m_VertexArray, m_SSBO);
-
         m_VertexArray->Bind();
-        m_ModelRenderer->AddModel("Content/Model/Cube.obj");
-        m_ModelRenderer->AddModel("Content/Model/Pot.fbx");
+
+        m_AssetManager = Application::Get().GetAssetManager();
+        m_DefaultTexture = m_AssetManager->GetAsset<Texture2D>(m_AssetManager->GetDefaultAssetHandle(AssetType::Texture2D));
+        auto handle = m_AssetManager->ImportAsset("Content/Model/Cube.csmesh");
+        m_ModelRenderer->AddModel(m_AssetManager->GetAsset<Model>(handle));
+
+        handle = m_AssetManager->ImportAsset("Content/Model/Pot.fbx");
+        m_ModelRenderer->AddModel(m_AssetManager->GetAsset<Model>(handle));
 
         m_Framebuffer = Framebuffer::Create();
 
 		RenderCommand::SetClearColor(m_ClearColor);
 
         transform = glm::translate(glm::mat4(1.0f), sPos);
+
 	}
+
+    EditorLayer::~EditorLayer()
+    {
+        delete m_ContentBrowserPanel;
+    }
 
     void EditorLayer::OnAttach()
     {
         CGR_TRACE("Attached {0} layer", m_LayerName);
+        m_ContentBrowserPanel = new ContentBrowserPanel;
         m_Camera.SetPerspective(60.0f);
         //m_Camera.SetOrthographic(10.0f);
     }
@@ -110,6 +123,8 @@ namespace Cgr
 
         style.WindowMinSize.x = minWinSizeX;
 
+        m_ContentBrowserPanel->OnImGuiRender();
+
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
 
@@ -127,10 +142,10 @@ namespace Cgr
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         if ((m_ViewportSize != *((glm::vec2*)&viewportSize)) && (viewportSize.x > 0 && viewportSize.y > 0))
         {
-            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             //CGR_INFO("Viewport resized: {0}, {1}", m_ViewportSize.x, m_ViewportSize.y);
             m_ViewportSize = { viewportSize.x, viewportSize.y };
             m_Camera.SetViewportAspectRatio(viewportSize.x, viewportSize.y);
+            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
 
         uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
@@ -143,7 +158,7 @@ namespace Cgr
         std::vector<const char*> modelList;
         for (auto& model : models)
         {
-            modelList.push_back(model->GetName().c_str());
+            modelList.push_back(model->Name.c_str());
         }
 
         ImGui::Begin("Scene Graph");
@@ -178,39 +193,177 @@ namespace Cgr
             {
                 modelMatrix = glm::translate(glm::mat4(1.0f), sPos);
             }
+
+            auto& name = models[m_CurrentEntity]->Name;
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            ImGui::Text("Model");
+            const auto& iconMap = m_ContentBrowserPanel->GetIconMap();
+            ImGui::ImageButton(name.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Model")->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
+            ImGui::PopStyleColor();
+
+            auto& model = models[m_CurrentEntity];
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
+                    model = m_AssetManager->GetAsset<Model>(handle);
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::SameLine();
+            ImGui::BeginGroup();
+            ImGui::Text(name.c_str());
+            if (ImGui::Button("Save", { 100.0f, 24.0f }))
+            {
+                ModelSerializer serializer(model);
+                serializer.Serialize(m_AssetManager->GetFilePath(model->Handle));
+            }
+
+            if (ImGui::Button("Load", { 100.0f, 24.0f }))
+            {
+                ModelSerializer serializer(model);
+                serializer.Deserialize(m_AssetManager->GetFilePath(model->Handle));
+            }
+            ImGui::EndGroup();
             
             std::vector<const char*> meshList;
             auto& meshes = models[m_CurrentEntity]->GetMeshes();
 
+            ImGui::Text("Material");
             for (auto& mesh : meshes)
             {
                 meshList.push_back(std::format("Index: {}", mesh.GetMaterialIndex()).c_str());
             }
 
-            ImGui::ListBox("Material", &meshIdx, meshList.data(), static_cast<int>(meshList.size()));
+            ImGui::ListBox("Material Index", &meshIdx, meshList.data(), static_cast<int>(meshList.size()));
 
             auto material = models[m_CurrentEntity]->GetMaterial(meshIdx);
 
-            auto& textures = material->GetAllTextures();
-            for (auto& texture : textures)
+            auto& matName = material->Name;
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            ImGui::ImageButton(matName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Material")->GetRendererID())), {98, 98}, {0, 1}, {1, 0});
+            ImGui::PopStyleColor();
+
+            if (ImGui::BeginDragDropTarget())
             {
-                auto name = texture.first.c_str();
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
+                    models[m_CurrentEntity]->SetMaterial(meshIdx, m_AssetManager->GetAsset<Material>(handle));
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::SameLine();
+            ImGui::BeginGroup();
+            ImGui::Text(matName.c_str());
+            if (ImGui::Button("Save", { 100.0f, 24.0f }))
+            {
+                MaterialSerializer serializer(material);
+                serializer.Serialize(m_AssetManager->GetFilePath(material->Handle));
+            }
+
+            if (ImGui::Button("Load", { 100.0f, 24.0f }))
+            {
+                MaterialSerializer serializer(material);
+                serializer.Deserialize(m_AssetManager->GetFilePath(material->Handle));
+            }
+            ImGui::EndGroup();
+
+            auto& shaderName = material->GetShader()->Name;
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            ImGui::Text("Shader");
+            ImGui::ImageButton(shaderName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Shader")->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
+            ImGui::PopStyleColor();
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
+                    auto shader = m_AssetManager->GetAsset<Shader>(handle);
+                    shader->Recompile();
+                    m_ModelRenderer->SetShaderBuffer(shader);
+                    material->SetShader(shader);
+                    shader->ExtractSSBOParameters(material.get());
+                    shader->UpdateSSBOParameters(material.get(), m_SSBO);
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::SameLine();
+            ImGui::BeginGroup();
+            ImGui::Text(shaderName.c_str());
+            if (ImGui::Button("Recompile", { 100.0f, 24.0f }))
+            {
+                auto shader = material->GetShader();
+                shader->Recompile();
+                m_ModelRenderer->SetShaderBuffer(shader);
+                shader->ExtractSSBOParameters(material.get());
+                shader->UpdateSSBOParameters(material.get(), m_SSBO);
+            }
+            ImGui::EndGroup();
+
+            auto& textures = material->GetAllTextures();
+            bool removeTex = false;
+            UUID texuuid;
+            ImGui::Text("Material Parameters");
+            int id = 0;
+            for (auto& [uuid, texture] : textures)
+            {
+                auto& texName = texture->GetName();
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                ImGui::Text(name);
-                ImGui::ImageButton(name, reinterpret_cast<void*>(static_cast<uintptr_t>(texture.second->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
+                ImGui::ImageButton(texName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(texture->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
                 ImGui::PopStyleColor();
 
-                //if (ImGui::BeginDragDropTarget())
-                //{
-                //    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                //    {
-                //        const wchar_t* path = (const wchar_t*)payload->Data;
-                //        std::filesystem::path texturePath = std::filesystem::path(s_AssetPath) / path;
-                //        //texture = assetManager.LoadAsset<Texture2D>(texturePath.string());
-                //    }
-                //    ImGui::EndDragDropTarget();
-                //}
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
+                        texture = m_AssetManager->GetAsset<Texture2D>(handle);
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+                ImGui::SameLine();
+                ImGui::BeginGroup();
+                ImGui::Text(texName.c_str());
+                
+                ImGui::PushID(id);
+                if (ImGui::Button("Remove", { 100.0f, 24.0f }))
+                {
+                    texuuid = uuid;
+                    removeTex = true;
+                }
+                id++;
+                ImGui::PopID();
+                ImGui::EndGroup();
             }
+
+            if (removeTex)
+            {
+                if (textures.size() <= 1)
+                {
+                    textures[texuuid] = m_DefaultTexture;
+                }
+                else
+                    textures.erase(texuuid);
+            }
+            removeTex = false;
+
+            ImGui::Spacing();
+            ImGui::Spacing();
+            float buttonX = ImGui::GetStyle().WindowPadding.x * 1.75f;
+            ImGui::SetCursorPosX(buttonX);
+            if (ImGui::Button("Add Texture", { 100.0f, 24.0f }))
+            {
+                material->AddTexture(texuuid, m_DefaultTexture);
+            }
+            ImGui::Spacing();
+            ImGui::Spacing();
 
             auto& materialParams = material->GetAllVariables();
             for (auto& param : materialParams)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CGR/Core/Core.h"
+#include "CGR/Asset/Asset.h"
 #include "CGR/Core/Log.h"
 #include "CGR/Core/Application.h"
 #include "CGR/Core/Layer.h"
@@ -16,3 +17,6 @@
 #include "CGR/Renderer/Framebuffer.h"
 #include "CGR/Renderer/Camera.h"
 #include "CGR/Renderer/Renderer.h"
+
+#include "CGR/Asset/Serializer/MaterialSerializer.h"
+#include "CGR/Asset/Serializer/ModelSerializer.h"
