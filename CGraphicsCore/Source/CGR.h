@@ -19,3 +19,4 @@
 #include "CGR/Renderer/Renderer.h"
 
 #include "CGR/Asset/Serializer/MaterialSerializer.h"
+#include "CGR/Asset/Serializer/ModelSerializer.h"

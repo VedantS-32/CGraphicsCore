@@ -30,10 +30,6 @@ namespace Cgr
             return s_AssetExtensionMap[extension];
         }
     }
-    AssetManager::AssetManager()
-    {
-        //LoadDefaultAssets();
-    }
 
     void AssetManager::LoadDefaultAssets()
     {
@@ -41,9 +37,10 @@ namespace Cgr
         {
             "Content/Texture/UVChecker.png",
             "Content/Icon/CStell.png",
-            "Content/Shader/Phong.glsl",
-            "Content/Material/Phong2.csmat",
-            //"Content/Model/Cube.obj"
+            "Content/Shader/Default.glsl",
+            "Content/Shader/Default.csmat",
+            "Content/Model/Cube.obj",
+            "Content/Model/Cube.csmesh"
         };
 
         for (auto& path : defaultAssets)
@@ -94,14 +91,14 @@ namespace Cgr
         if(asset)
         {
             asset->Handle = handle;
-            asset->Name = filePath.filename().string();
+            asset->Name = filePath.stem().string();
             m_LoadedAssets[handle] = asset;
             m_AssetRegistry[handle] = metadata;
         }
         return handle;
     }
 
-    const AssetMetadata& AssetManager::GetAssetMetadata(AssetHandle handle)
+    AssetMetadata& AssetManager::GetAssetMetadata(AssetHandle handle)
     {
         return m_AssetRegistry[handle];
     }
@@ -109,6 +106,11 @@ namespace Cgr
     const std::filesystem::path& AssetManager::GetFilePath(AssetHandle handle)
     {
         return m_AssetRegistry[handle].Path;
+    }
+
+    void AssetManager::SetFilePath(AssetHandle handle, const std::filesystem::path& path)
+    {
+        m_AssetRegistry[handle].Path = path;
     }
 
     const AssetRegistry& AssetManager::GetAssetRegistry()

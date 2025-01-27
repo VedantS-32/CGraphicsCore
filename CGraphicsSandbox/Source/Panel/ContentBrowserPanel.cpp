@@ -16,8 +16,12 @@ namespace Cgr
 		m_IconMap["Folder"] = assetManager->GetAsset<Texture2D>(handle);
 		handle = assetManager->ImportAsset("Content/Icon/ContentBrowser/File.png");
 		m_IconMap["File"] = assetManager->GetAsset<Texture2D>(handle);
+		handle = assetManager->ImportAsset("Content/Icon/ContentBrowser/Shader.png");
+		m_IconMap["Shader"] = assetManager->GetAsset<Texture2D>(handle);
 		handle = assetManager->ImportAsset("Content/Icon/ContentBrowser/Material.png");
 		m_IconMap["Material"] = assetManager->GetAsset<Texture2D>(handle);
+		handle = assetManager->ImportAsset("Content/Icon/ContentBrowser/Model.png");
+		m_IconMap["Model"] = assetManager->GetAsset<Texture2D>(handle);
 
 		m_Handle = m_IconMap["Folder"]->Handle;
 	}
@@ -72,6 +76,18 @@ namespace Cgr
 				{
 					assetManager->ImportAsset(assetPath);
 					icon = m_IconMap["Material"];
+					m_Handle = icon->Handle;
+				}
+				else if(extension == ".glsl")
+				{
+					assetManager->ImportAsset(assetPath);
+					icon = m_IconMap["Shader"];
+					m_Handle = icon->Handle;
+				}
+				else if(extension == ".csmesh" || extension == ".obj" || extension == ".fbx")
+				{
+					assetManager->ImportAsset(assetPath);
+					icon = m_IconMap["Model"];
 					m_Handle = icon->Handle;
 				}
 				else if(extension == ".png" || extension == ".jpg")

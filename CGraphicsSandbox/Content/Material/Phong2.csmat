@@ -1,13 +1,13 @@
-Asset: 13831390844844784218
-Material: Phong.csmat
+Asset: 7734369955585331912
+Material: Phong2
 Shader: Content/Shader/Phong.glsl
 Textures:
-  Diffuse: Content/Texture/MossyCobble/MossyCobbleDiffuse.jpg
-  Normal: Content/Texture/MossyCobble/MossyCobbleNormal.jpg
+  MossyCobbleDiffuse: Content/Texture/MossyCobble/MossyCobbleDiffuse.jpg
+  MossyCobbleNormal: Content/Texture/MossyCobble/MossyCobbleNormal.jpg
 Attributes:
   uColor: [1, 1, 1]
   uIntensity: 1.5
   uSpecularAlpha: 13.6
   uSpecularColor: [1, 1, 1]
-  uTiling: 1
+  uTiling: 1.8
   uTint: [1, 1, 1]

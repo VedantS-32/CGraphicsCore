@@ -11,6 +11,6 @@ namespace Cgr
 		static Ref<Model> ImportModel(AssetHandle handle, const AssetMetadata& metadata);
 
 	private:
-		static Ref<Model> LoadModel(const std::filesystem::path& filePath);
+		static Ref<Model> LoadModel(const AssetMetadata& metadata);
 	};
 }

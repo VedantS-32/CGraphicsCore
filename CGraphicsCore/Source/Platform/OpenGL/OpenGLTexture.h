@@ -16,7 +16,7 @@ namespace Cgr
 		virtual uint32_t GetWidth() const override { return m_Width; }
 		virtual uint32_t GetHeight() const override { return m_Height; }
 		virtual const std::string& GetFilepath() const override { return m_Path; }
-		virtual const std::string& GetName() const override { return m_Name; }
+		virtual std::string& GetName() override { return m_Name; }
 		virtual void SetName(const std::string& name) { m_Name = name; }
 		virtual uint32_t GetRendererID() const override { return m_RendererID; }
 

@@ -26,10 +26,21 @@ namespace Cgr
 			m_ShaderVariables.emplace_back(variable);
 		}
 
-		std::vector<Ref<ShaderVariable>>& GetAllVariables() { return m_ShaderVariables; }
-		std::unordered_map<std::string, Ref<Texture>>& GetAllTextures() { return m_Textures; }
+		bool HasVariable(const std::string& name) const
+		{
+			for (auto& variable : m_ShaderVariables)
+			{
+				if (variable->GetName() == name)
+					return true;
+			}
 
-		void AddTexture(const std::string& name, Ref<Texture> texture) { m_Textures[name] = texture; }
+			return false;
+		}
+		
+		std::vector<Ref<ShaderVariable>>& GetAllVariables() { return m_ShaderVariables; }
+		std::unordered_map<UUID, Ref<Texture>>& GetAllTextures() { return m_Textures; }
+
+		void AddTexture(UUID uuid, Ref<Texture> texture) { m_Textures[uuid] = texture; }
 
 		Ref<Shader> GetShader() const { return m_Shader; }
 
@@ -44,7 +55,7 @@ namespace Cgr
 
 	private:
 		Ref<Shader> m_Shader;
-		std::unordered_map<std::string, Ref<Texture>> m_Textures;
+		std::unordered_map<UUID, Ref<Texture>> m_Textures;
 		std::string m_Name = "Default";
 
 		// Material paramters stored in RAM

@@ -3,6 +3,7 @@
 
 #include "CGR/Core/Application.h"
 #include "CGR/Asset/AssetManager.h"
+#include "CGR/Asset/Serializer/ModelSerializer.h"
 
 #define ASSIMP_DLL
 #include <assimp/Importer.hpp>
@@ -11,6 +12,8 @@
 
 namespace Cgr
 {
+	static uint32_t s_MatNum = 0;
+
 	static Mesh processMesh(aiMesh* mesh, const aiScene* scene)
 	{
 		std::vector<Vertex> vertices;
@@ -24,7 +27,7 @@ namespace Cgr
 
 		uint32_t materialIndex = mesh->mMaterialIndex;
 
-		CGR_CORE_INFO("Name: {0}, Material index: {1}", mesh->mName.C_Str(), mesh->mMaterialIndex);
+		//CGR_CORE_INFO("Name: {0}, Material index: {1}", mesh->mName.C_Str(), mesh->mMaterialIndex);
 
 		for (uint32_t i = 0; i < verticesCount; i++)
 		{
@@ -74,7 +77,6 @@ namespace Cgr
 
 	static void LoadMaterialTextures(Ref<Material> material, aiMaterial* mat, aiTextureType type, const std::string& name)
 	{
-		std::vector<Ref<Texture2D>> textures;
 		for (unsigned int i = 0; i < mat->GetTextureCount(type); i++)
 		{
 			AssetHandle handle;
@@ -85,8 +87,16 @@ namespace Cgr
 			handle = assetManager->ImportAsset(str.C_Str());
 
 			auto texture = assetManager->GetAsset<Texture2D>(handle);
-			material->AddTexture(std::format("{}{}", name, i), texture);
-			textures.emplace_back(texture);
+			UUID uuid;
+			material->AddTexture(uuid, texture);
+		}
+		if (material->GetAllTextures().size() == 0)
+		{
+			auto assetManager = Application::Get().GetAssetManager();
+			auto defaultTextureHandle = assetManager->GetDefaultAssetHandle(AssetType::Texture2D);
+			Ref<Texture2D> texture = assetManager->GetAsset<Texture2D>(defaultTextureHandle);
+			UUID uuid;
+			material->AddTexture(uuid, texture);
 		}
 	}
 
@@ -108,8 +118,8 @@ namespace Cgr
 				aiMaterial* aiMat = scene->mMaterials[mesh->mMaterialIndex];
 
 				auto assetManager = Application::Get().GetAssetManager();
-				auto defaultMaterialHandle = assetManager->GetDefaultAssetHandle(AssetType::Material);
-				Ref<Material> material = assetManager->GetAsset<Material>(defaultMaterialHandle);
+				auto material = assetManager->CreateAsset<Material>(std::format("Content/Generated/Material/{}_Material{}.csmat", model->Name, s_MatNum));
+				s_MatNum++;
 
 				LoadMaterialTextures(material, aiMat, aiTextureType_DIFFUSE, "Diffuse");
 				LoadMaterialTextures(material, aiMat, aiTextureType_NORMALS, "Normal");
@@ -135,17 +145,17 @@ namespace Cgr
 		{
 			int currentMatIdx = -1;
 			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			uint32_t matIdx = mesh->mMaterialIndex;
-			if (currentMatIdx != matIdx)
-			{
-				currentMatIdx = matIdx;
-				aiMaterial* aiMat = scene->mMaterials[mesh->mMaterialIndex];
-				auto assetManager = Application::Get().GetAssetManager();
-				auto defaultMaterialHandle = assetManager->GetDefaultAssetHandle(AssetType::Material);
-				Ref<Material> material = assetManager->GetAsset<Material>(defaultMaterialHandle);
+			//uint32_t matIdx = mesh->mMaterialIndex;
+			//if (currentMatIdx != matIdx)
+			//{
+			//	currentMatIdx = matIdx;
+			//	aiMaterial* aiMat = scene->mMaterials[mesh->mMaterialIndex];
+			//	auto assetManager = Application::Get().GetAssetManager();
+			//	auto defaultMaterialHandle = assetManager->GetDefaultAssetHandle(AssetType::Material);
+			//	Ref<Material> material = assetManager->GetAsset<Material>(defaultMaterialHandle);
 
-				model->AddMaterial(material);
-			}
+			//	model->AddMaterial(material);
+			//}
 			meshes.push_back(processMesh(mesh, scene));
 		}
 		// then do the same for each of its children
@@ -157,34 +167,67 @@ namespace Cgr
     
 	Ref<Model> ModelImporter::ImportModel(AssetHandle handle, const AssetMetadata& metadata)
     {
-        return LoadModel(metadata.Path);
+        return LoadModel(metadata);
     }
 
-    Ref<Model> ModelImporter::LoadModel(const std::filesystem::path& filePath)
+    Ref<Model> ModelImporter::LoadModel(const AssetMetadata& metadata)
     {
+		s_MatNum = 0;
 		Assimp::Importer importer;
-		const aiScene* scene = importer.ReadFile(filePath.string(),
-			aiProcess_Triangulate |          // Essential: Convert all geometries to triangles
-			aiProcess_GenNormals |          // Generate smooth normals if missing
-			aiProcess_CalcTangentSpace |    // Essential for normal mapping
-			aiProcess_ImproveCacheLocality | // Important for rendering performance
-			aiProcess_FindInvalidData |     // Remove invalid/corrupt data
-			aiProcess_OptimizeMeshes |      // Join small meshes, good for performance
-			aiProcess_ValidateDataStructure // Ensure data integrity
-		);
-
-		if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
-		{
-			CGR_CORE_ERROR("ERROR::ASSIMP:: {0}", importer.GetErrorString());
-			return nullptr;
-		}
 		auto model = Model::Create();
+		auto& filePath = metadata.Path;
+		model->Name = filePath.stem().string();
 		if (filePath.extension() == ".csmesh")
-			processNode(model, scene->mRootNode, scene);
-		else
-			processNode(true, model, scene->mRootNode, scene);
+		{
+			ModelSerializer serializer(model);
+			serializer.Deserialize(filePath);
+			const aiScene* scene = importer.ReadFile(model->GetPath(),
+				aiProcess_Triangulate |          // Essential: Convert all geometries to triangles
+				aiProcess_GenNormals |          // Generate smooth normals if missing
+				aiProcess_CalcTangentSpace |    // Essential for normal mapping
+				aiProcess_ImproveCacheLocality | // Important for rendering performance
+				aiProcess_FindInvalidData |     // Remove invalid/corrupt data
+				aiProcess_OptimizeMeshes |      // Join small meshes, good for performance
+				aiProcess_ValidateDataStructure // Ensure data integrity
+			);
 
-		CGR_CORE_INFO("Imported Model asset, path: {0}", filePath.string());
+			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+			{
+				CGR_CORE_ERROR("ERROR::ASSIMP:: {0}", importer.GetErrorString());
+				return nullptr;
+			}
+			processNode(model, scene->mRootNode, scene);
+
+			auto& materials = model->GetAllMaterials();
+			while (materials.size() > scene->mNumMaterials)
+			{
+				CGR_CORE_WARN("Materials size: {0}, numMat: {1}", materials.size(), scene->mNumMaterials);
+				materials.pop_back();
+			}
+		}
+		else
+		{
+			model->SetPath(filePath.string());
+			const aiScene* scene = importer.ReadFile(model->GetPath(),
+				aiProcess_Triangulate |          // Essential: Convert all geometries to triangles
+				aiProcess_GenNormals |          // Generate smooth normals if missing
+				aiProcess_CalcTangentSpace |    // Essential for normal mapping
+				aiProcess_ImproveCacheLocality | // Important for rendering performance
+				aiProcess_FindInvalidData |     // Remove invalid/corrupt data
+				aiProcess_OptimizeMeshes |      // Join small meshes, good for performance
+				aiProcess_ValidateDataStructure // Ensure data integrity
+			);
+
+			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+			{
+				CGR_CORE_ERROR("ERROR::ASSIMP:: {0}", importer.GetErrorString());
+				return nullptr;
+			}
+			processNode(true, model, scene->mRootNode, scene);
+		}
+
+
+		CGR_CORE_TRACE("Imported Model asset, path: {0}", filePath.string());
 
 		return model;
     }

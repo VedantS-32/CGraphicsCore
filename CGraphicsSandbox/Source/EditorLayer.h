@@ -37,6 +37,7 @@ namespace Cgr
 		Ref<ModelRenderer> m_ModelRenderer;
 
 		AssetManager* m_AssetManager;
+		Ref<Texture2D> m_DefaultTexture;
 
 		glm::vec4 m_ClearColor;
 		glm::vec2 m_ViewportSize;

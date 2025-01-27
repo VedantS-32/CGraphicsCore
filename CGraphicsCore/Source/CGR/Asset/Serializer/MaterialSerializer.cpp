@@ -23,9 +23,9 @@ namespace Cgr
 
         out << YAML::Key << "Textures" << YAML::Value << YAML::BeginMap;
         const auto& textures = m_Material->GetAllTextures();
-        for (auto& [name, texture] : textures)
+        for (auto& [uuid, texture] : textures)
         {
-            out << YAML::Key << name << YAML::Value << assetManager->GetFilePath(texture->Handle).string();
+            out << YAML::Key << texture->GetName() << YAML::Value << assetManager->GetFilePath(texture->Handle).string();
         }
         out << YAML::EndMap;
 
@@ -77,8 +77,13 @@ namespace Cgr
         out << YAML::EndMap;
         out << YAML::EndMap;
 
+        if(!std::filesystem::exists(path))
+			std::filesystem::create_directories(path.parent_path());
+
         std::ofstream fout(path);
         fout << out.c_str();
+
+        CGR_CORE_INFO("Serialized material to: {0}", path.string());
     }
 
     void MaterialSerializer::Deserialize(const std::filesystem::path& path)
@@ -96,10 +101,13 @@ namespace Cgr
 
         auto shader = assetManager->GetAsset<Shader>(assetManager->ImportAsset(data["Shader"].as<std::string>()));
         m_Material->SetShader(shader);
+        m_Material->GetAllTextures().clear();
         auto textures = data["Textures"];
         for (auto texture : textures)
         {
-            m_Material->AddTexture(texture.first.as<std::string>(), assetManager->GetAsset<Texture>(assetManager->ImportAsset(texture.second.as<std::string>())));
+            UUID uuid;
+            auto importedTex = assetManager->GetAsset<Texture>(assetManager->ImportAsset(texture.second.as<std::string>()));
+            m_Material->AddTexture(uuid, importedTex);
         }
 
         auto& parameters = m_Material->GetAllVariables();
@@ -147,5 +155,7 @@ namespace Cgr
                 break;
             }
         }
+
+        CGR_CORE_INFO("Deserialized material from: {0}", path.string());
     }
 }

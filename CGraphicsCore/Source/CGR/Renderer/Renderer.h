@@ -16,8 +16,9 @@ namespace Cgr
 		ModelRenderer(const Ref<VertexArray> vertexArray, Ref<ShaderStorageBuffer> SSBO);
 
 		void OnUpdate(Camera& camera);
-		void AddModel(const std::string& modelPath);
-		void AddShader(const std::string& shaderPath);
+		void AddModel(Ref<Model> model);
+		void SetShaderBuffer(Ref<Shader> shader);
+		//void AddShader(const std::string& shaderPath);
 		Ref<UniformBuffer> GetModelPropsUniformBuffer() { return m_ModelProps; }
 		std::vector<Ref<Model>>& GetModels() { return m_Models; }
 
@@ -32,7 +33,7 @@ namespace Cgr
 	private:
 		BufferLayout m_BufferLayout;
 		Ref<VertexArray> m_VertexArray;
-		Ref<ShaderLibrary> m_ShaderLibrary;
+		//Ref<ShaderLibrary> m_ShaderLibrary;
 		Ref<UniformBuffer> m_ModelCommons;
 		Ref<UniformBuffer> m_ModelProps;
 		Ref<ShaderStorageBuffer> m_SSBO;

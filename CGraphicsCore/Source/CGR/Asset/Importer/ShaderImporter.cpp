@@ -77,8 +77,8 @@ namespace Cgr
     {
         auto source = ParseFile(filePath.string());
         auto shaderSources = PreProcess(source);
-        auto shader = Shader::Create(shaderSources);
-        CGR_CORE_INFO("Imported Shader asset, path: {0}", filePath.string());
+        auto shader = Shader::Create(shaderSources, filePath);
+        CGR_CORE_TRACE("Imported Shader asset, path: {0}", filePath.string());
 
         return shader;
     }

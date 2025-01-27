@@ -15,14 +15,15 @@ namespace Cgr
 	{
 	public:
 		OpenGLShader(const std::string& name, const std::string& shaderPath);
-		OpenGLShader(const std::unordered_map<ShaderType, std::string>& shaderSources);
+		OpenGLShader(const std::unordered_map<ShaderType, std::string>& shaderSources, const std::filesystem::path path);
 
 		virtual void PrepareShader() override;
+		void PrepareShaderForRecompile();
 
 		virtual std::string ParseShader(const std::string & shaderPath) override;
 		virtual std::unordered_map<ShaderType, std::string> PreProcess(const std::string& source) override;
 		virtual void CompileShaders(const std::unordered_map<ShaderType, std::string>& shaderSources) override;
-		virtual const std::string& GetPath() override;
+		virtual void Recompile() override;
 
 		virtual void Set1i(const std::string& name, int value) override;
 		virtual void Set1i(const std::string& name, int value, uint32_t offset) override;
@@ -71,7 +72,7 @@ namespace Cgr
 		static GLenum ToOpenGLDataType(ShaderDataType type);
 
 	private:
-		std::string m_ShaderPath;
+		std::filesystem::path m_ShaderPath;
 		std::string m_Name;
 		std::unordered_map<std::string, int> m_UniformLocationCache;
 

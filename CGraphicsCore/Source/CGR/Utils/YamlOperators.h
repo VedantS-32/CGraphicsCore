@@ -1,6 +1,5 @@
 #pragma once
 
-#define YAML_BUILD_SHARED_LIBS
 #include <yaml-cpp/yaml.h>
 
 #include <glm/glm.hpp>

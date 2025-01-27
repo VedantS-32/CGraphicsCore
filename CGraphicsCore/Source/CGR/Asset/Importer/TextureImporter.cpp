@@ -48,7 +48,7 @@ namespace Cgr
 		texture->SetName(name);
 		stbi_image_free(data);
 
-		CGR_CORE_INFO("Imported Texture2D asset, path: {0}", filePath.string());
+		CGR_CORE_TRACE("Imported Texture2D asset, path: {0}", filePath.string());
 
 		return texture;
     }

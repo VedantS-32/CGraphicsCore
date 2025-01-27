@@ -48,13 +48,15 @@ namespace Cgr
 		Model(const std::string& modelPath);
 		~Model() {}
 
-		const std::string& GetName() { return m_ModelName; }
+		const std::string& GetPath() { return m_ModelPath; }
+		void SetPath(const std::string& path) { m_ModelPath = path; }
 		glm::mat4& GetModelMatrix() { return m_ModelMatrix; }
 		std::vector<Mesh>& GetMeshes() { return m_Meshes; }
 
 		void AddMaterial(Ref<Material> material);
 		void AddMaterial(Ref<Shader> shader);
 		void SetMaterial(uint32_t meshIndex, Ref<Material> material);
+		std::vector<Ref<Material>>& GetAllMaterials() { return m_Materials; }
 		Ref<Material> GetMaterial(uint32_t meshIndex) { return m_Materials.at(meshIndex); }
 
 		void DrawModel(const Ref<VertexArray> vertexArray, const BufferLayout& layout, Ref<ShaderStorageBuffer> SSBO);
@@ -69,7 +71,6 @@ namespace Cgr
 	private:
 		glm::mat4 m_ModelMatrix{ 1.0f };
 		std::string m_ModelPath;
-		std::string m_ModelName;
 		std::vector<Mesh> m_Meshes;
 		std::vector<Ref<Material>> m_Materials;
 	};

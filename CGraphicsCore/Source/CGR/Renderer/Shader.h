@@ -29,7 +29,7 @@ namespace Cgr
 		virtual std::string ParseShader(const std::string& shaderPath) = 0;
 		virtual std::unordered_map<ShaderType, std::string> PreProcess(const std::string& source) = 0;
 		virtual void CompileShaders(const std::unordered_map<ShaderType, std::string>& shaderSources) = 0;
-		virtual const std::string& GetPath() = 0;
+		virtual void Recompile() = 0;
 
 		virtual void Set1i(const std::string& name, int value) = 0;
 		virtual void Set1i(const std::string& name, int value, uint32_t offset) = 0;
@@ -60,7 +60,7 @@ namespace Cgr
 
 	public:
 		static Ref<Shader> Create(const std::string& name, const std::string& shaderPath);
-		static Ref<Shader> Create(const std::unordered_map<ShaderType, std::string>& shaderSource);
+		static Ref<Shader> Create(const std::unordered_map<ShaderType, std::string>& shaderSource, const std::filesystem::path path);
 	};
 
 	class CGR_API ShaderLibrary
