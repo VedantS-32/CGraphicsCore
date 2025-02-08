@@ -226,6 +226,18 @@ namespace Cgr
 			processNode(true, model, scene->mRootNode, scene);
 		}
 
+		auto renderer = Application::Get().GetRenderer();
+		int currentMatIdx = -1;
+		for (auto& mesh : model->GetMeshes())
+		{
+			if (currentMatIdx != mesh.GetMaterialIndex())
+			{
+				currentMatIdx = mesh.GetMaterialIndex();
+				renderer->m_WorldSettings->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());
+				renderer->GetModelCommonsUniformBuffer()->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());
+				renderer->GetModelPropsUniformBuffer()->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());
+			}
+		}
 
 		CGR_CORE_TRACE("Imported Model asset, path: {0}", filePath.string());
 

@@ -8,6 +8,7 @@
 #include <imgui_internal.h>
 #include <backends/imgui_impl_glfw.h>
 #include <backends/imgui_impl_opengl3.h>
+#include <ImGuizmo.h>
 
 namespace Cgr
 {
@@ -21,7 +22,7 @@ namespace Cgr
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
 		m_ImGuiContext = ImGui::CreateContext();
-		ImGui::SetCurrentContext(m_ImGuiContext);
+		//ImGui::SetCurrentContext(m_ImGuiContext);
 		//std::cout << "ImGui context core: " << ImGui::GetCurrentContext() << std::endl;
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
@@ -53,7 +54,7 @@ namespace Cgr
 		GLFWwindow* window = static_cast<GLFWwindow*>(app.GetWindow().GetNativeWindow());
 
 		ImGui_ImplGlfw_InitForOpenGL(window, true);
-		ImGui_ImplOpenGL3_Init("#version 410");
+		ImGui_ImplOpenGL3_Init("#version 450");
 
 	}
 
@@ -74,6 +75,12 @@ namespace Cgr
 
 	void ImGuiLayer::OnEvent(Event& e)
 	{
+		if (m_BlockEvents)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			e.Handled |= e.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
+			e.Handled |= e.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
+		}
 	}
 
 	ImGuiContext* ImGuiLayer::GetImGuiContext()
@@ -86,6 +93,7 @@ namespace Cgr
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+		ImGuizmo::BeginFrame();
 	}
 
 	void ImGuiLayer::End()

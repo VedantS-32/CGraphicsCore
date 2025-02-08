@@ -16,6 +16,7 @@ namespace Cgr
 		virtual void OnUpdate(Timestep ts) override;
 		virtual void OnUIRender() override;
 		virtual void OnEvent(Event& e) override;
+		void BlockEvents(bool block) { m_BlockEvents = block; }
 
 		ImGuiContext* GetImGuiContext();
 

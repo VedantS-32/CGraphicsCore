@@ -20,6 +20,11 @@ namespace Cgr
 			s_RendererAPI->DrawIndexed(vertexArray, count);
 		}
 
+		inline static void DrawIndexed(uint32_t count = 0)
+		{
+			s_RendererAPI->DrawIndexed(count);
+		}
+
 		inline static void SetViewport(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 		{
 			s_RendererAPI->SetViewport(x, y, width, height);

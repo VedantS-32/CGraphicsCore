@@ -5,7 +5,12 @@
 #include "CGR/Core/Log.h"
 #include "CGR/Core/Application.h"
 #include "CGR/Core/Layer.h"
+#include "CGR/Core/Input.h"
 #include "CGR/Event/Event.h"
+#include "CGR/Event/KeyEvent.h"
+#include "CGR/Event/MouseEvent.h"
+#include "CGR/Math/Math.h"
+#include "CGR/Utils/PlatformUtils.h"
 
 #include "CGR/Renderer/RenderCommand.h"
 #include "CGR/Renderer/Buffer.h"
@@ -18,5 +23,10 @@
 #include "CGR/Renderer/Camera.h"
 #include "CGR/Renderer/Renderer.h"
 
+#include "CGR/Scene/Entity.h"
+#include "CGR/Scene/Components.h"
+#include "CGR/Scene/Scene.h"
+
 #include "CGR/Asset/Serializer/MaterialSerializer.h"
 #include "CGR/Asset/Serializer/ModelSerializer.h"
+#include "CGR/Scene/Serializer/SceneSerializer.h"

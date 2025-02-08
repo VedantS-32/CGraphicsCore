@@ -13,6 +13,8 @@ namespace Cgr
 			: m_KeyCode(key) {}
 
 		KeyCode GetKey() const { return m_KeyCode; }
+		EVENT_CLASS_CATEGORY(EventCategoryKeyboard | EventCategoryInput)
+
 
 	protected:
 		KeyCode m_KeyCode;
@@ -23,6 +25,8 @@ namespace Cgr
 	public:
 		KeyPressedEvent(KeyCode key, int repeatCount)
 			: KeyEvent(key), m_RepeatCount(repeatCount) {}
+
+		inline int GetRepeatCount() const { return m_RepeatCount; }
 
 		virtual std::string ToString() const
 		{

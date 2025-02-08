@@ -6,6 +6,7 @@
 namespace Cgr
 {
 	extern const std::filesystem::path s_AssetPath = "Content";
+	static std::string s_Path;
 
 	ContentBrowserPanel::ContentBrowserPanel()
 		: m_CurrentDirectory(s_AssetPath)
@@ -109,6 +110,17 @@ namespace Cgr
 				if (ImGui::BeginDragDropSource())
 				{
 					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", assetHandle.ValuePtr(), sizeof(uint64_t), ImGuiCond_Once);
+					ImGui::Image(reinterpret_cast<void*>(static_cast<uintptr_t>(icon->GetRendererID())), { dragDropPreviewSize, dragDropPreviewSize }, { 0, 1 }, { 1, 0 });
+					ImGui::EndDragDropSource();
+				}
+			}
+
+			if (assetPath.extension() == ".cgr")
+			{
+				if (ImGui::BeginDragDropSource())
+				{
+					s_Path = relativePath.string();
+					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", s_Path.c_str(), strlen(s_Path.c_str()) + 1, ImGuiCond_Once);
 					ImGui::Image(reinterpret_cast<void*>(static_cast<uintptr_t>(icon->GetRendererID())), { dragDropPreviewSize, dragDropPreviewSize }, { 0, 1 }, { 1, 0 });
 					ImGui::EndDragDropSource();
 				}

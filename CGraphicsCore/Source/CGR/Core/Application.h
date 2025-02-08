@@ -2,13 +2,15 @@
 
 #include "Core.h"
 #include "Window.h"
-#include "CGR/Asset/AssetManager.h"
 #include "CGR/Event/MouseEvent.h"
+#include "CGR/Asset/AssetManager.h"
+#include "CGR/Renderer/Renderer.h"
 #include "CGR/UI/ImGuiLayer.h"
 
 namespace Cgr
 {
 	class WindowClosedEvent;
+	class Renderer;
 
 	class CGR_API Application
 	{
@@ -26,6 +28,7 @@ namespace Cgr
 		const Window& GetWindow() const { return *m_Window; }
 		ImGuiLayer* GetUILayer() { return m_ImGuiLayer; }
 		AssetManager* GetAssetManager() { return m_AssetManager; }
+		Renderer* GetRenderer() { return m_Renderer; }
 
 		static Application& Get();
 		void OnWindowClose(WindowClosedEvent& e);
@@ -41,6 +44,7 @@ namespace Cgr
 		AssetManager* m_AssetManager;
 
 		ImGuiLayer* m_ImGuiLayer;
+		Renderer* m_Renderer;
 
 		LayerStack m_LayerStack;
 		EventManager m_EventManager;

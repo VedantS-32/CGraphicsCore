@@ -12,6 +12,8 @@ namespace Cgr
 							   virtual EventType GetEventType() const override { return GetStaticType(); }\
 							   virtual const char* GetName() const override { return #type; }
 
+#define EVENT_CLASS_CATEGORY(category) virtual int GetCategoryFlags() const override { return category; }
+
 	using EventCallbackHandle = std::function<void(Event&)>;
 
 	template<typename T>
@@ -26,6 +28,16 @@ namespace Cgr
 		MouseButtonPressed, MouseButtonReleased, MouseButtonClicked, MouseMoved, MouseScrolled
 	};
 
+	enum EventCategory
+	{
+		None = 0,
+		EventCategoryApplication = BIT(0),
+		EventCategoryInput = BIT(1),
+		EventCategoryKeyboard = BIT(2),
+		EventCategoryMouse = BIT(3),
+		EventCategoryMouseButton = BIT(4)
+	};
+
 	class CGR_API Event
 	{
 		friend class EventManager;
@@ -36,9 +48,15 @@ namespace Cgr
 	public:
 		virtual EventType GetEventType() const = 0;
 		virtual const char* GetName() const = 0;
+		virtual int GetCategoryFlags() const = 0;
 		virtual std::string ToString() const = 0;
 
-	private:
+		inline bool IsInCategory(EventCategory category) const
+		{
+			return GetCategoryFlags() & category;
+		}
+
+	public:
 		bool Handled = false;
 	};
 	
@@ -159,8 +177,9 @@ namespace Cgr
 			{
 				if (!m_Event.Handled)
 				{
+					// TODO: event functions must return a boolean
 					func(static_cast<T&>(m_Event));
-					m_Event.Handled = true;
+					//m_Event.Handled = true;
 				}
 			}
 		}

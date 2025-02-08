@@ -28,7 +28,7 @@ namespace Cgr
 
 		void SetPerspective(double fov, double nearClip = 0.01f, double farClip = 10000.0f);
 		void SetOrthographic(double size, double nearClip = -1000.0f, double farClip = 1000.0f);
-		void SetViewportAspectRatio(float width, float height);
+		void SetViewportSize(float width, float height);
 
 		const glm::mat4& GetProjectionMatrix() { return m_ProjectionMatrix; }
 		const glm::mat4& GetViewMatrix() { return m_ViewMatrix; }

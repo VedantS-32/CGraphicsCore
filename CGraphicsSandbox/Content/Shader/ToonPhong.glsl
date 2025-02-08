@@ -21,6 +21,7 @@ layout(std140) uniform ModelCommons
 
 layout(std140) uniform ModelProps
 {
+	int uEntityID;
 	mat4 uModel;
 };
 
@@ -53,6 +54,7 @@ out VS_OUTMaterialParams
 
 out VS_OUTModelProps
 {
+	int EntityID;
 	vec2 TexCoord;
 	vec3 Normal;
 	mat3 Tbn;
@@ -84,6 +86,7 @@ void main()
 	vMaterialParams.Tiling = uTiling;
 	vMaterialParams.Tint = uTint;
 
+	vModelProps.EntityID = uEntityID;
 	vModelProps.TexCoord = aTexCoord;
 	vModelProps.Normal = aNormal;
 	vModelProps.Tbn = tbn;
@@ -97,7 +100,8 @@ void main()
 
 uniform sampler2D uTextures[16];
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out uint EntityID;
 
 in VS_OUTWorldSettings
 {
@@ -118,6 +122,7 @@ in VS_OUTMaterialParams
 
 in VS_OUTModelProps
 {
+	flat int EntityID;
 	vec2 TexCoord;
 	vec3 Normal;
 	mat3 Tbn;
@@ -137,7 +142,7 @@ void main()
 
 	// Diffuse lighting with toon quantization
 	float diffuse = max(dot(normal, lightDir), 0.0);
-	float toonDiffuse = floor(diffuse * 10.0) / 10.0; // Quantize into 4 levels
+	float toonDiffuse = floor(diffuse * 5.0) / 5.0; // Quantize into 4 levels
 
 	// Specular lighting with toon quantization
 	vec3 halfVector = normalize(lightDir + viewDir);
@@ -152,4 +157,6 @@ void main()
 
 	// Combine toon shading components
 	FragColor = baseColor * (vMaterialParams.Intensity * (toonDiffuse + toonSpecular) + ambient);
+
+	EntityID = vModelProps.EntityID;
 }

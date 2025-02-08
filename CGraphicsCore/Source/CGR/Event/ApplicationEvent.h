@@ -20,6 +20,7 @@ namespace Cgr
 		}
 
 		EVENT_CLASS_TYPE(WindowResized);
+		EVENT_CLASS_CATEGORY(EventCategoryApplication);
 
 	private:
 		uint32_t Width, Height;
@@ -40,6 +41,7 @@ namespace Cgr
 		}
 
 		EVENT_CLASS_TYPE(WindowMoved);
+		EVENT_CLASS_CATEGORY(EventCategoryApplication);
 
 	private:
 		int XPos, YPos;
@@ -56,6 +58,7 @@ namespace Cgr
 		}
 
 		EVENT_CLASS_TYPE(WindowClosed);
+		EVENT_CLASS_CATEGORY(EventCategoryApplication)
 	};
 }
 

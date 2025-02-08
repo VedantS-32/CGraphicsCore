@@ -25,10 +25,12 @@ project "CGraphicsSandbox"
 		"%{IncludeDir.glm}",
 		"%{IncludeDir.imgui}",
 		"%{IncludeDir.ImGuizmo}",
+		"%{IncludeDir.entt}"
 	}
 
 	links {
 		"imgui",
+		"ImGuizmo",
 		"CGraphicsCore"
 	}
 

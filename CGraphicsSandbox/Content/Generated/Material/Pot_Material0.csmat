@@ -1,0 +1,12 @@
+Asset: 8546935591205096577
+Material: Pot_Material0.csmat
+Shader: Content/Shader/Default.glsl
+Textures:
+  UVChecker: C:\Blender\Textures\UVChecker.png
+Attributes:
+  uColor: [1, 1, 1]
+  uIntensity: 1
+  uSpecularAlpha: 1
+  uSpecularColor: [1, 1, 1]
+  uTiling: 1
+  uTint: [1, 1, 1]

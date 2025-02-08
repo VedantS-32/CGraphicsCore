@@ -24,7 +24,8 @@ project "CGraphicsCore"
 		"Vendor/glm/**.hpp",
 		"Vendor/glm/**.inl",
 		"Vendor/stb_image/**.h",
-		"Vendor/stb_image/**.cpp"
+		"Vendor/stb_image/**.cpp",
+		"Vendor/entt/include/entt.hpp"
 	}
 
 	includedirs {
@@ -37,7 +38,8 @@ project "CGraphicsCore"
 		"%{IncludeDir.ImGuizmo}",
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.assimp}",
-		"%{IncludeDir.yaml_cpp}"
+		"%{IncludeDir.yaml_cpp}",
+		"%{IncludeDir.entt}"
 	}
 
 	links {
