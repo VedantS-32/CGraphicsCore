@@ -1,0 +1,6 @@
+Asset: 12712950906805177098
+Model: Pot
+Source: Content/Model/Pot.fbx
+Materials:
+  0: Content/Generated/Material/Pot_Material0.csmat
+  1: Content/Generated/Material/Pot_Material1.csmat

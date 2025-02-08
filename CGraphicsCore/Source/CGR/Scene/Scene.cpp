@@ -12,6 +12,13 @@
 namespace Cgr
 {
 	Scene::Scene()
+		: m_Name("Untitled")
+	{
+		m_Renderer = Application::Get().GetRenderer();
+	}
+
+	Scene::Scene(const std::string& name)
+		: m_Name(name)
 	{
 		m_Renderer = Application::Get().GetRenderer();
 	}

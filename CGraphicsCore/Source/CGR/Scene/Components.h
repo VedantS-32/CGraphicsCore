@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CGR/Core/Core.h"
+#include "CGR/Core/Application.h"
 #include "CGR/Renderer/Model.h"
 
 #define GLM_ENABLE_EXPERIMENTAL

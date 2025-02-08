@@ -9,6 +9,7 @@
 
 namespace Cgr
 {
+    extern const std::filesystem::path s_AssetPath;
 	EditorLayer::EditorLayer(const std::string& layerName)
 		: Layer(layerName), m_ClearColor(0.5f, 0.5f, 0.5f, 1.0f), m_ViewportSize(1280, 720)
     {
@@ -153,6 +154,34 @@ namespace Cgr
 
         style.WindowMinSize.x = minWinSizeX;
 
+
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                // Disabling fullscreen would allow the window to be moved to the front of other windows,
+                // which we can't undo at the moment without finer window depth/z control.
+                ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
+                ImGui::MenuItem("Padding", NULL, &opt_padding);
+                ImGui::Separator();
+
+                if (ImGui::MenuItem("New", "Ctrl+N"))
+                    NewScene();
+
+                if (ImGui::MenuItem("Open", "Ctrl+O"))
+                    OpenScene();
+
+                if (ImGui::MenuItem("Save", "Ctrl+Shift+S"))
+                    SaveSceneAs();
+
+                if (ImGui::MenuItem("Exit")) { Application::Get().Close(); }
+
+                ImGui::EndMenu();
+            }
+
+            ImGui::EndMenuBar();
+        }
+
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
 
@@ -178,6 +207,16 @@ namespace Cgr
 
         uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+        if (ImGui::BeginDragDropTarget())
+        {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+            {
+                auto path = static_cast<const char*>(payload->Data);
+                OpenScene(std::filesystem::path(s_AssetPath) / path);
+            }
+            ImGui::EndDragDropTarget();
+        }
 
         bool isViewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
         Entity selectedEntity = m_SceneGraphPanel->GetSelectedEntity();
@@ -261,29 +300,29 @@ namespace Cgr
         bool control = Input::IsKeyPressed(Key::CGR_KEY_LEFT_CONTROL) || Input::IsKeyPressed(Key::CGR_KEY_RIGHT_CONTROL);
         bool shift = Input::IsKeyPressed(Key::CGR_KEY_LEFT_SHIFT) || Input::IsKeyPressed(Key::CGR_KEY_RIGHT_SHIFT);
 
-        //switch (e.GetKeyCode())
-        //{
-        //case Key::CGR_KEY_N:
-        //{
-        //    if (control)
-        //        NewScene();
-        //    break;
-        //}
-        //case Key::CGR_KEY_O:
-        //{
-        //    if (control)
-        //        OpenScene();
-        //    break;
-        //}
-        //case Key::CGR_KEY_S:
-        //{
-        //    if (control && shift)
-        //        SaveSceneAs();
-        //    break;
-        //}
-        //default:
-        //    break;
-        //}
+        switch (e.GetKey())
+        {
+        case Key::CGR_KEY_N:
+        {
+            if (control)
+                NewScene();
+            break;
+        }
+        case Key::CGR_KEY_O:
+        {
+            if (control)
+                OpenScene();
+            break;
+        }
+        case Key::CGR_KEY_S:
+        {
+            if (control && shift)
+                SaveSceneAs();
+            break;
+        }
+        default:
+            break;
+        }
 
         if (!m_Camera.IsMouseMoving())
         {
@@ -329,40 +368,40 @@ namespace Cgr
         return false;
     }
 
-    //void EditorLayer::NewScene()
-    //{
-    //    m_ActiveScene = CreateRef<Scene>();
-    //    m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-    //    m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-    //}
+    void EditorLayer::NewScene()
+    {
+        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneGraphPanel->SetContext(m_ActiveScene);
+    }
 
-    //void EditorLayer::OpenScene()
-    //{
-    //    std::string filepath = FileDialogs::OpenFile("CGR Scene (*.CGR)\0*.CGR\0");
-    //    if (!filepath.empty())
-    //    {
-    //        OpenScene(filepath);
-    //    }
-    //}
+    void EditorLayer::OpenScene()
+    {
+        std::string filepath = FileDialogs::OpenFile("CGR Scene (*.cgr)\0*.cgr\0");
+        if (!filepath.empty())
+        {
+            OpenScene(filepath);
+        }
+    }
 
-    //void EditorLayer::OpenScene(const std::filesystem::path& path)
-    //{
-    //    m_ActiveScene = CreateRef<Scene>();
-    //    m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
-    //    m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    void EditorLayer::OpenScene(const std::filesystem::path& path)
+    {
+        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+        m_SceneGraphPanel->SetContext(m_ActiveScene);
 
-    //    SceneSerializer serializer(m_ActiveScene);
-    //    serializer.Deserialize(path.string());
-    //}
+        SceneSerializer serializer(m_ActiveScene);
+        serializer.Deserialize(path.string());
+    }
 
-    //void EditorLayer::SaveSceneAs()
-    //{
-    //    std::string filepath = FileDialogs::SaveFile("CGR Scene (*.CGR)\0*.CGR\0");
-    //    if (!filepath.empty())
-    //    {
-    //        SceneSerializer serializer(m_ActiveScene);
-    //        serializer.Serialize(filepath);
-    //    }
-    //}
+    void EditorLayer::SaveSceneAs()
+    {
+        std::string filepath = FileDialogs::SaveFile("CGR Scene (*.cgr)\0*.cgr\0");
+        if (!filepath.empty())
+        {
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Serialize(filepath);
+        }
+    }
 
 }

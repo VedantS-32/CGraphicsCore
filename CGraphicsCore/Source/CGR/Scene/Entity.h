@@ -43,6 +43,8 @@ namespace Cgr
 			m_Scene->m_Registry.remove<T>(m_Handle);
 		}
 
+		const entt::entity& GetHandle() const { return m_Handle; }
+
 		operator bool() const { return m_Handle != entt::null; }
 		operator entt::entity() const { return m_Handle; }
 		operator uint32_t() const { return static_cast<uint32_t>(m_Handle); }

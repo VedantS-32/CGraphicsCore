@@ -1,0 +1,5 @@
+Asset: 17766351170380329897
+Model: Cube
+Source: Content/Model/Cube.obj
+Materials:
+  0: Content/Generated/Material/Cube_Material0.csmat

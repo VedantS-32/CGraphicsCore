@@ -10,6 +10,7 @@
 #include "CGR/Event/KeyEvent.h"
 #include "CGR/Event/MouseEvent.h"
 #include "CGR/Math/Math.h"
+#include "CGR/Utils/PlatformUtils.h"
 
 #include "CGR/Renderer/RenderCommand.h"
 #include "CGR/Renderer/Buffer.h"
@@ -28,3 +29,4 @@
 
 #include "CGR/Asset/Serializer/MaterialSerializer.h"
 #include "CGR/Asset/Serializer/ModelSerializer.h"
+#include "CGR/Scene/Serializer/SceneSerializer.h"

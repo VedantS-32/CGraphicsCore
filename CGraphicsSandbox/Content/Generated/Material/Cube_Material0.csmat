@@ -1,0 +1,12 @@
+Asset: 1443651288568208450
+Material: Cube_Material0.csmat
+Shader: Content/Shader/Default.glsl
+Textures:
+  CStell: Content/Icon/CStell.png
+Attributes:
+  uColor: [1, 1, 1]
+  uIntensity: 1
+  uSpecularAlpha: 1
+  uSpecularColor: [1, 1, 1]
+  uTiling: 1
+  uTint: [1, 1, 1]
