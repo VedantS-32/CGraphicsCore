@@ -32,6 +32,7 @@ namespace Cgr
 
         m_ImGuiLayer = new ImGuiLayer;
         m_AssetManager = new AssetManager;
+        m_Renderer = new Renderer;
         m_AssetManager->LoadDefaultAssets();
         PushOverlay(m_ImGuiLayer);
     }
@@ -40,6 +41,7 @@ namespace Cgr
     {
         delete m_ImGuiLayer;
         delete m_AssetManager;
+        delete m_Renderer;
     }
 
     void Application::PushLayer(Layer* layer)
@@ -65,7 +67,9 @@ namespace Cgr
         {
             (*it)->OnEvent(e);
             if (e.Handled)
+            {
                 break;
+            }
         }
     }
 

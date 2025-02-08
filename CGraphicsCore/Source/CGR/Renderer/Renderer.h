@@ -10,20 +10,26 @@ namespace Cgr
 {
 	class Camera;
 
-	class CGR_API ModelRenderer
+	class CGR_API Renderer
 	{
 	public:
-		ModelRenderer(const Ref<VertexArray> vertexArray, Ref<ShaderStorageBuffer> SSBO);
-
+		Renderer();
+		
+		//Always call Renderer::OnUpdate before calling ActiveScene::OnUpdate, as it updates shader buffer
 		void OnUpdate(Camera& camera);
 		void AddModel(Ref<Model> model);
 		void SetShaderBuffer(Ref<Shader> shader);
 		//void AddShader(const std::string& shaderPath);
+		Ref<UniformBuffer> GetModelCommonsUniformBuffer() { return m_ModelCommons; }
 		Ref<UniformBuffer> GetModelPropsUniformBuffer() { return m_ModelProps; }
+		Ref<VertexArray> GetVertexArray() { return m_VertexArray; }
+		Ref<ShaderStorageBuffer> GetSSBO() { return m_SSBO; }
 		std::vector<Ref<Model>>& GetModels() { return m_Models; }
 
+		void DrawModel(Ref<Model> model) const;
+
 	public:
-		static Ref<ModelRenderer> Create(const Ref<VertexArray> vertexArray, Ref<ShaderStorageBuffer> SSBO);
+		static Ref<Renderer> Create();
 
 		// Temp
 		Ref<UniformBuffer> m_WorldSettings;
@@ -33,7 +39,7 @@ namespace Cgr
 	private:
 		BufferLayout m_BufferLayout;
 		Ref<VertexArray> m_VertexArray;
-		//Ref<ShaderLibrary> m_ShaderLibrary;
+
 		Ref<UniformBuffer> m_ModelCommons;
 		Ref<UniformBuffer> m_ModelProps;
 		Ref<ShaderStorageBuffer> m_SSBO;

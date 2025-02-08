@@ -3,6 +3,7 @@
 #include <CGR.h>
 
 #include "Panel/ContentBrowserPanel.h"
+#include "Panel/SceneGraphPanel.h"
 
 #include <glm/glm.hpp>
 
@@ -21,34 +22,37 @@ namespace Cgr
 		virtual void OnEvent(Event& e) override;
 
 	private:
-		BufferLayout m_BufferLayout;
-		Ref<VertexArray> m_VertexArray;
-		Ref<VertexBuffer> m_vbo;
-		Ref<IndexBuffer> m_ibo;
-		Ref<Shader> m_shader;
+		bool OnKeyPressed(KeyPressedEvent& e);
+		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
-		Ref<ShaderLibrary> m_ShaderLib;
-		Ref<Material> m_Material;
-		Ref<Model> m_Model;
+		//void NewScene();
+		//void OpenScene();
+		//void OpenScene(const std::filesystem::path& path);
+		//void SaveSceneAs();
 
+	private:
 		Ref<Framebuffer> m_Framebuffer;
 		Camera m_Camera;
-		Ref<ShaderStorageBuffer> m_SSBO;
-		Ref<ModelRenderer> m_ModelRenderer;
 
 		AssetManager* m_AssetManager;
-		Ref<Texture2D> m_DefaultTexture;
+		Renderer* m_Renderer;
+
+		Ref<Scene> m_ActiveScene;
+		Entity m_HoveredEntity;
 
 		glm::vec4 m_ClearColor;
 		glm::vec2 m_ViewportSize;
 		glm::vec2 m_ViewportBounds[2];
 		bool m_ViewportFocused;
 		bool m_ViewportHovered;
+		
+		int m_GizmoType = -1;
 
 		int m_PreviousEntity = -1;
 		int m_CurrentEntity = -1;
 
 		// Panels
 		ContentBrowserPanel* m_ContentBrowserPanel;
+		SceneGraphPanel* m_SceneGraphPanel;
 	};
 }

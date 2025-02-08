@@ -114,6 +114,11 @@ namespace Cgr
 		return 0;
 	}
 
+	Model::Model()
+	{
+
+	}
+
 	Model::Model(const std::string& modelPath)
 		: m_ModelPath(modelPath)
 	{
@@ -161,7 +166,7 @@ namespace Cgr
 				material->UpdateSSBOParameters(SSBO);
 			}
 
-			glDrawElements(GL_TRIANGLES, mesh.GetIndexCount(), GL_UNSIGNED_INT, nullptr);
+			RenderCommand::DrawIndexed(mesh.GetIndexCount());
 		}
 	}
 

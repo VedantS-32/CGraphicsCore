@@ -4,38 +4,38 @@
 
 #include <imgui.h>
 #include <misc/cpp/imgui_stdlib.h>
+#include <ImGuizmo.h>
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Cgr
 {
-    static glm::mat4 transform{ 1.0f };
-    static glm::vec3 sPos = { 0.0f, 0.0f, 0.0f };
-    static int meshIdx = 0;
-
 	EditorLayer::EditorLayer(const std::string& layerName)
 		: Layer(layerName), m_ClearColor(0.5f, 0.5f, 0.5f, 1.0f), m_ViewportSize(1280, 720)
     {
-		m_VertexArray = VertexArray::Create();
-
-        m_SSBO = ShaderStorageBuffer::Create();
-
-        m_ModelRenderer = ModelRenderer::Create(m_VertexArray, m_SSBO);
-        m_VertexArray->Bind();
-
         m_AssetManager = Application::Get().GetAssetManager();
-        m_DefaultTexture = m_AssetManager->GetAsset<Texture2D>(m_AssetManager->GetDefaultAssetHandle(AssetType::Texture2D));
+        m_Renderer = Application::Get().GetRenderer();
+
+        m_ActiveScene = CreateRef<Scene>();
+        auto entity = m_ActiveScene->CreateEntity("FirstEntity");
+
         auto handle = m_AssetManager->ImportAsset("Content/Model/Cube.csmesh");
-        m_ModelRenderer->AddModel(m_AssetManager->GetAsset<Model>(handle));
+        auto& model = entity.AddComponent<ModelComponent>();
+        model.SetModel(m_AssetManager->GetAsset<Model>(handle));
 
         handle = m_AssetManager->ImportAsset("Content/Model/Pot.fbx");
-        m_ModelRenderer->AddModel(m_AssetManager->GetAsset<Model>(handle));
+        entity = m_ActiveScene->CreateEntity("SecondEntity");
+        auto& model1 = entity.AddComponent<ModelComponent>();
+        model1.SetModel(m_AssetManager->GetAsset<Model>(handle));
+        auto& transform = entity.GetComponent<TransformComponent>();
 
-        m_Framebuffer = Framebuffer::Create();
+        FramebufferSpecification fbSpec;
+        fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
+        fbSpec.Width = 1280;
+        fbSpec.Height = 720;
+        m_Framebuffer = Framebuffer::Create(fbSpec);
 
 		RenderCommand::SetClearColor(m_ClearColor);
-
-        transform = glm::translate(glm::mat4(1.0f), sPos);
-
+        m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
 	}
 
     EditorLayer::~EditorLayer()
@@ -47,19 +47,49 @@ namespace Cgr
     {
         CGR_TRACE("Attached {0} layer", m_LayerName);
         m_ContentBrowserPanel = new ContentBrowserPanel;
+        m_SceneGraphPanel = new SceneGraphPanel(m_ActiveScene, m_ContentBrowserPanel);
         m_Camera.SetPerspective(60.0f);
         //m_Camera.SetOrthographic(10.0f);
     }
 
 	void EditorLayer::OnUpdate(Timestep ts)
 	{
+        if (FramebufferSpecification spec = m_Framebuffer->GetSpecification();
+            m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f &&
+            (spec.Width != m_ViewportSize.x || spec.Height != m_ViewportSize.y))
+        {
+            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_Camera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
+            m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+        }
+
         m_Framebuffer->Bind();
 
 		RenderCommand::Clear();
 
+        // Clear our entity ID attachment to -1
+        m_Framebuffer->ClearAttachment(1, -1);
+
         m_Camera.OnUpdate(ts);
 
-        m_ModelRenderer->OnUpdate(m_Camera);
+        m_Renderer->OnUpdate(m_Camera);
+
+        m_ActiveScene->OnUpdate(ts, m_Camera);
+
+        auto [mx, my] = ImGui::GetMousePos();
+        mx -= m_ViewportBounds[0].x;
+        my -= m_ViewportBounds[0].y;
+        glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+        my = viewportSize.y - my;
+        int mouseX = (int)mx;
+        int mouseY = (int)my;
+
+        if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+        {
+            int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
+            m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
+            //CGR_INFO("Pixel data: {0}", pixelData);
+        }
 
         m_Framebuffer->Unbind();
 	}
@@ -123,8 +153,6 @@ namespace Cgr
 
         style.WindowMinSize.x = minWinSizeX;
 
-        m_ContentBrowserPanel->OnImGuiRender();
-
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
         ImGui::Begin("Viewport");
 
@@ -137,33 +165,63 @@ namespace Cgr
 
         m_ViewportFocused = ImGui::IsWindowFocused();
         m_ViewportHovered = ImGui::IsWindowHovered();
-        //Application::Get().GetUILayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+        Application::Get().GetUILayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
 
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+        m_ViewportSize = { viewportSize.x, viewportSize.y };
         if ((m_ViewportSize != *((glm::vec2*)&viewportSize)) && (viewportSize.x > 0 && viewportSize.y > 0))
         {
             //CGR_INFO("Viewport resized: {0}, {1}", m_ViewportSize.x, m_ViewportSize.y);
-            m_ViewportSize = { viewportSize.x, viewportSize.y };
-            m_Camera.SetViewportAspectRatio(viewportSize.x, viewportSize.y);
+            m_Camera.SetViewportSize(viewportSize.x, viewportSize.y);
             m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         }
 
         uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
         ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
-        ImGui::End();
-        ImGui::PopStyleVar();
+        bool isViewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
+        Entity selectedEntity = m_SceneGraphPanel->GetSelectedEntity();
+        ImGuizmo::SetOrthographic(false);
+        ImGuizmo::SetDrawlist();
 
-        auto& models = m_ModelRenderer->GetModels();
-        std::vector<const char*> modelList;
-        for (auto& model : models)
+        float windowWidth = (float)ImGui::GetWindowWidth();
+        float windowHeight = (float)ImGui::GetWindowHeight();
+        ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
+
+        // Editor Camera
+        const glm::mat4& cameraProjection = m_Camera.GetProjectionMatrix();
+        glm::mat4 cameraView = m_Camera.GetViewMatrix();
+
+
+        if (selectedEntity)
         {
-            modelList.push_back(model->Name.c_str());
-        }
+            // Entity transform
+            auto& tc = selectedEntity.GetComponent<TransformComponent>();
+            glm::mat4 transform = tc.GetTransform();
 
-        ImGui::Begin("Scene Graph");
-        ImGui::ListBox("Entities", &m_CurrentEntity, modelList.data(), static_cast<int>(modelList.size()));
-        ImGui::End();
+            // Snapping
+            bool snap = Input::IsKeyPressed(Key::CGR_KEY_LEFT_CONTROL);
+            float snapValue = 0.5f; // Snap to 0.5m for translation/rotation
+            // Snap to 10 degrees for rotation
+            if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
+                snapValue = 10.0f;
+
+            float snapValues[] = { snapValue, snapValue, snapValue };
+            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                nullptr, snap ? snapValues : nullptr);
+
+            if (ImGuizmo::IsOver() && m_GizmoType != -1)
+            {
+                glm::vec3 translation{ 0.0f }, rotation{ 0.0f }, scale{ 1.0f };
+                Math::DecomposeTransform(transform, translation, rotation, scale);
+
+                glm::vec3 deltaRotation = rotation - tc.Rotation;
+                tc.Translation = translation;
+                tc.Rotation += deltaRotation;
+                tc.Scale = scale;
+            }
+        }
 
         ImGui::Begin("World Settings");
         auto& pos = m_Camera.GetPosition();
@@ -171,253 +229,140 @@ namespace Cgr
         ImGui::Text(txt.c_str());
         if (ImGui::ColorEdit4("Clear color", glm::value_ptr(m_ClearColor)))
             RenderCommand::SetClearColor(m_ClearColor);
-        if(ImGui::ColorEdit3("AmbientLight", glm::value_ptr(m_ModelRenderer->m_AmbientLight)))
-            m_ModelRenderer->m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_ModelRenderer->m_AmbientLight));
-        if(ImGui::DragFloat3("LightPosition", glm::value_ptr(m_ModelRenderer->m_LightPosition)))
-            m_ModelRenderer->m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_ModelRenderer->m_LightPosition));
+        if (ImGui::ColorEdit3("AmbientLight", glm::value_ptr(m_Renderer->m_AmbientLight)))
+            m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_AmbientLight));
+        if (ImGui::DragFloat3("LightPosition", glm::value_ptr(m_Renderer->m_LightPosition)))
+            m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_LightPosition));
         ImGui::End();
 
-        ImGui::Begin("Properties");
-        if(m_CurrentEntity != -1)
-        {
-            if (m_CurrentEntity != m_PreviousEntity)
-            {
-                meshIdx = 0;
-                m_PreviousEntity = m_CurrentEntity;
-            }
-
-            auto& modelMatrix = models[m_CurrentEntity]->GetModelMatrix();
-            sPos = modelMatrix[3];
-
-            if (ImGui::DragFloat3("translation", glm::value_ptr(sPos), 0.1f))
-            {
-                modelMatrix = glm::translate(glm::mat4(1.0f), sPos);
-            }
-
-            auto& name = models[m_CurrentEntity]->Name;
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-            ImGui::Text("Model");
-            const auto& iconMap = m_ContentBrowserPanel->GetIconMap();
-            ImGui::ImageButton(name.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Model")->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
-            ImGui::PopStyleColor();
-
-            auto& model = models[m_CurrentEntity];
-
-            if (ImGui::BeginDragDropTarget())
-            {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                {
-                    AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
-                    model = m_AssetManager->GetAsset<Model>(handle);
-                }
-                ImGui::EndDragDropTarget();
-            }
-
-            ImGui::SameLine();
-            ImGui::BeginGroup();
-            ImGui::Text(name.c_str());
-            if (ImGui::Button("Save", { 100.0f, 24.0f }))
-            {
-                ModelSerializer serializer(model);
-                serializer.Serialize(m_AssetManager->GetFilePath(model->Handle));
-            }
-
-            if (ImGui::Button("Load", { 100.0f, 24.0f }))
-            {
-                ModelSerializer serializer(model);
-                serializer.Deserialize(m_AssetManager->GetFilePath(model->Handle));
-            }
-            ImGui::EndGroup();
-            
-            std::vector<const char*> meshList;
-            auto& meshes = models[m_CurrentEntity]->GetMeshes();
-
-            ImGui::Text("Material");
-            for (auto& mesh : meshes)
-            {
-                meshList.push_back(std::format("Index: {}", mesh.GetMaterialIndex()).c_str());
-            }
-
-            ImGui::ListBox("Material Index", &meshIdx, meshList.data(), static_cast<int>(meshList.size()));
-
-            auto material = models[m_CurrentEntity]->GetMaterial(meshIdx);
-
-            auto& matName = material->Name;
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-            ImGui::ImageButton(matName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Material")->GetRendererID())), {98, 98}, {0, 1}, {1, 0});
-            ImGui::PopStyleColor();
-
-            if (ImGui::BeginDragDropTarget())
-            {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                {
-                    AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
-                    models[m_CurrentEntity]->SetMaterial(meshIdx, m_AssetManager->GetAsset<Material>(handle));
-                }
-                ImGui::EndDragDropTarget();
-            }
-
-            ImGui::SameLine();
-            ImGui::BeginGroup();
-            ImGui::Text(matName.c_str());
-            if (ImGui::Button("Save", { 100.0f, 24.0f }))
-            {
-                MaterialSerializer serializer(material);
-                serializer.Serialize(m_AssetManager->GetFilePath(material->Handle));
-            }
-
-            if (ImGui::Button("Load", { 100.0f, 24.0f }))
-            {
-                MaterialSerializer serializer(material);
-                serializer.Deserialize(m_AssetManager->GetFilePath(material->Handle));
-            }
-            ImGui::EndGroup();
-
-            auto& shaderName = material->GetShader()->Name;
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-            ImGui::Text("Shader");
-            ImGui::ImageButton(shaderName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Shader")->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
-            ImGui::PopStyleColor();
-
-            if (ImGui::BeginDragDropTarget())
-            {
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                {
-                    AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
-                    auto shader = m_AssetManager->GetAsset<Shader>(handle);
-                    shader->Recompile();
-                    m_ModelRenderer->SetShaderBuffer(shader);
-                    material->SetShader(shader);
-                    shader->ExtractSSBOParameters(material.get());
-                    shader->UpdateSSBOParameters(material.get(), m_SSBO);
-                }
-                ImGui::EndDragDropTarget();
-            }
-
-            ImGui::SameLine();
-            ImGui::BeginGroup();
-            ImGui::Text(shaderName.c_str());
-            if (ImGui::Button("Recompile", { 100.0f, 24.0f }))
-            {
-                auto shader = material->GetShader();
-                shader->Recompile();
-                m_ModelRenderer->SetShaderBuffer(shader);
-                shader->ExtractSSBOParameters(material.get());
-                shader->UpdateSSBOParameters(material.get(), m_SSBO);
-            }
-            ImGui::EndGroup();
-
-            auto& textures = material->GetAllTextures();
-            bool removeTex = false;
-            UUID texuuid;
-            ImGui::Text("Material Parameters");
-            int id = 0;
-            for (auto& [uuid, texture] : textures)
-            {
-                auto& texName = texture->GetName();
-                ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                ImGui::ImageButton(texName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(texture->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
-                ImGui::PopStyleColor();
-
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                    {
-                        AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
-                        texture = m_AssetManager->GetAsset<Texture2D>(handle);
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                ImGui::SameLine();
-                ImGui::BeginGroup();
-                ImGui::Text(texName.c_str());
-                
-                ImGui::PushID(id);
-                if (ImGui::Button("Remove", { 100.0f, 24.0f }))
-                {
-                    texuuid = uuid;
-                    removeTex = true;
-                }
-                id++;
-                ImGui::PopID();
-                ImGui::EndGroup();
-            }
-
-            if (removeTex)
-            {
-                if (textures.size() <= 1)
-                {
-                    textures[texuuid] = m_DefaultTexture;
-                }
-                else
-                    textures.erase(texuuid);
-            }
-            removeTex = false;
-
-            ImGui::Spacing();
-            ImGui::Spacing();
-            float buttonX = ImGui::GetStyle().WindowPadding.x * 1.75f;
-            ImGui::SetCursorPosX(buttonX);
-            if (ImGui::Button("Add Texture", { 100.0f, 24.0f }))
-            {
-                material->AddTexture(texuuid, m_DefaultTexture);
-            }
-            ImGui::Spacing();
-            ImGui::Spacing();
-
-            auto& materialParams = material->GetAllVariables();
-            for (auto& param : materialParams)
-            {
-                switch (param->GetType())
-                {
-                case Cgr::ShaderDataType::None:
-                    break;
-                case Cgr::ShaderDataType::Float:
-                    ImGui::DragFloat(param->GetName().c_str(), static_cast<float*>(param->GetValue()), 0.1f);
-                    break;
-                case Cgr::ShaderDataType::Float2:
-                    ImGui::DragFloat2(param->GetName().c_str(), static_cast<float*>(param->GetValue()));
-                    break;
-                case Cgr::ShaderDataType::Float3:
-                    ImGui::ColorEdit3(param->GetName().c_str(), static_cast<float*>(param->GetValue()));
-                    break;
-                case Cgr::ShaderDataType::Float4:
-                    ImGui::ColorEdit4(param->GetName().c_str(), static_cast<float*>(param->GetValue()));
-                    break;
-                case Cgr::ShaderDataType::Mat3:
-                    //ImGui::DragFloat2(param->GetName().c_str(), static_cast<float*>(param->GetValue()));
-                    break;
-                case Cgr::ShaderDataType::Mat4:
-                    //ImGui::DragFloat2(param->GetName().c_str(), static_cast<float*>(param->GetValue()));
-                    break;
-                case Cgr::ShaderDataType::Int:
-                    ImGui::DragInt(param->GetName().c_str(), static_cast<int*>(param->GetValue()));
-                    break;
-                case Cgr::ShaderDataType::Int2:
-                    ImGui::DragInt2(param->GetName().c_str(), static_cast<int*>(param->GetValue()));
-                    break;
-                case Cgr::ShaderDataType::Int3:
-                    ImGui::DragInt3(param->GetName().c_str(), static_cast<int*>(param->GetValue()));
-                    break;
-                case Cgr::ShaderDataType::Int4:
-                    ImGui::DragInt4(param->GetName().c_str(), static_cast<int*>(param->GetValue()));
-                    break;
-                case Cgr::ShaderDataType::Bool:
-                    ImGui::Checkbox(param->GetName().c_str(), static_cast<bool*>(param->GetValue()));
-                    break;
-                default:
-                    break;
-                }
-            }
-        }
+        m_ContentBrowserPanel->OnImGuiRender();
+        m_SceneGraphPanel->OnImGuiRender();
 
         ImGui::End();
-
+        ImGui::PopStyleVar();
         ImGui::End();
     }
 
 	void EditorLayer::OnEvent(Event& e)
 	{
         m_Camera.OnEvent(e);
+
+        EventDispatcher dispatcher(e);
+        dispatcher.Dispatch<KeyPressedEvent>(CGR_BIND_EVENT_FN(EditorLayer::OnKeyPressed));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(CGR_BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
 	}
+
+    bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
+    {
+        // Shortcuts
+        if (e.GetRepeatCount() > 0)
+            return false;
+
+        bool control = Input::IsKeyPressed(Key::CGR_KEY_LEFT_CONTROL) || Input::IsKeyPressed(Key::CGR_KEY_RIGHT_CONTROL);
+        bool shift = Input::IsKeyPressed(Key::CGR_KEY_LEFT_SHIFT) || Input::IsKeyPressed(Key::CGR_KEY_RIGHT_SHIFT);
+
+        //switch (e.GetKeyCode())
+        //{
+        //case Key::CGR_KEY_N:
+        //{
+        //    if (control)
+        //        NewScene();
+        //    break;
+        //}
+        //case Key::CGR_KEY_O:
+        //{
+        //    if (control)
+        //        OpenScene();
+        //    break;
+        //}
+        //case Key::CGR_KEY_S:
+        //{
+        //    if (control && shift)
+        //        SaveSceneAs();
+        //    break;
+        //}
+        //default:
+        //    break;
+        //}
+
+        if (!m_Camera.IsMouseMoving())
+        {
+            switch (e.GetKey())
+            {
+                // Gizmo
+            case Key::CGR_KEY_Q:
+            {
+                m_GizmoType = -1;
+                break;
+            }
+            case Key::CGR_KEY_W:
+            {
+                m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                break;
+            }
+            case Key::CGR_KEY_E:
+            {
+                m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+                break;
+            }
+            case Key::CGR_KEY_R:
+            {
+                m_GizmoType = ImGuizmo::OPERATION::SCALE;
+                break;
+            }
+            default:
+                break;
+            }
+        }
+
+        return false;
+    }
+
+    bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+    {
+        if (e.GetMouseButton() == Mouse::CGR_BUTTON_LEFT)
+        {
+            if (m_ViewportHovered && !ImGuizmo::IsOver() && !ImGuizmo::IsUsing() && !Input::IsKeyPressed(Key::CGR_KEY_LEFT_ALT))
+                m_SceneGraphPanel->SetSelectedEntity(m_HoveredEntity);
+        }
+
+        return false;
+    }
+
+    //void EditorLayer::NewScene()
+    //{
+    //    m_ActiveScene = CreateRef<Scene>();
+    //    m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+    //    m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    //}
+
+    //void EditorLayer::OpenScene()
+    //{
+    //    std::string filepath = FileDialogs::OpenFile("CGR Scene (*.CGR)\0*.CGR\0");
+    //    if (!filepath.empty())
+    //    {
+    //        OpenScene(filepath);
+    //    }
+    //}
+
+    //void EditorLayer::OpenScene(const std::filesystem::path& path)
+    //{
+    //    m_ActiveScene = CreateRef<Scene>();
+    //    m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+    //    m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+    //    SceneSerializer serializer(m_ActiveScene);
+    //    serializer.Deserialize(path.string());
+    //}
+
+    //void EditorLayer::SaveSceneAs()
+    //{
+    //    std::string filepath = FileDialogs::SaveFile("CGR Scene (*.CGR)\0*.CGR\0");
+    //    if (!filepath.empty())
+    //    {
+    //        SceneSerializer serializer(m_ActiveScene);
+    //        serializer.Serialize(filepath);
+    //    }
+    //}
+
 }

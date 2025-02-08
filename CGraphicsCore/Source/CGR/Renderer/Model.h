@@ -44,13 +44,14 @@ namespace Cgr
 	class CGR_API Model : public Asset
 	{
 	public:
-		Model() = default;
+		Model();
 		Model(const std::string& modelPath);
 		~Model() {}
 
 		const std::string& GetPath() { return m_ModelPath; }
 		void SetPath(const std::string& path) { m_ModelPath = path; }
 		glm::mat4& GetModelMatrix() { return m_ModelMatrix; }
+		void UpdateTransform(const glm::mat4& transform) { m_ModelMatrix = transform; }
 		std::vector<Mesh>& GetMeshes() { return m_Meshes; }
 
 		void AddMaterial(Ref<Material> material);

@@ -21,6 +21,7 @@ layout(std140) uniform ModelCommons
 
 layout(std140) uniform ModelProps
 {
+	int uEntityID;
 	mat4 uModel;
 };
 
@@ -53,6 +54,7 @@ out VS_OUTMaterialParams
 
 out VS_OUTModelProps
 {
+	int EntityID;
 	vec2 TexCoord;
 	vec3 Normal;
 	mat3 Tbn;
@@ -84,6 +86,7 @@ void main()
 	vMaterialParams.Tiling = uTiling;
 	vMaterialParams.Tint = uTint;
 
+	vModelProps.EntityID = uEntityID;
 	vModelProps.TexCoord = aTexCoord;
 	vModelProps.Normal = aNormal;
 	vModelProps.Tbn = tbn;
@@ -97,7 +100,8 @@ void main()
 
 uniform sampler2D uTextures[16];
 
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out int EntityID;
 
 in VS_OUTWorldSettings
 {
@@ -118,6 +122,7 @@ in VS_OUTMaterialParams
 
 in VS_OUTModelProps
 {
+	flat int EntityID;
 	vec2 TexCoord;
 	vec3 Normal;
 	mat3 Tbn;
@@ -141,4 +146,5 @@ void main()
 	FragColor = (texture(uTextures[0], vModelProps.TexCoord * vMaterialParams.Tiling) * vec4(vMaterialParams.Tint, 1.0)) *
 		(vMaterialParams.Intensity * (diffuse + ((vec4(vMaterialParams.SpecularColor, 1.0) *
 			pow(blinn, vMaterialParams.SpecularAlpha)))) + ambient);
+	EntityID = vModelProps.EntityID;
 }

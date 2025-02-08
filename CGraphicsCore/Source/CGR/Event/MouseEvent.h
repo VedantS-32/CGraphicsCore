@@ -21,6 +21,7 @@ namespace Cgr
 		}
 
 		EVENT_CLASS_TYPE(MouseMoved);
+		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput);
 
 	public:
 		float XPos, YPos;
@@ -41,6 +42,7 @@ namespace Cgr
 		}
 
 		EVENT_CLASS_TYPE(MouseScrolled);
+		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput);
 
 	public:
 		float XOffset, YOffset;
@@ -53,6 +55,8 @@ namespace Cgr
 			: m_Button(button) {}
 
 		MouseCode GetMouseButton() const { return m_Button; }
+
+		EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput);
 
 	protected:
 		MouseCode m_Button;

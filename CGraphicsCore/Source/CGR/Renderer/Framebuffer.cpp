@@ -7,7 +7,7 @@
 
 namespace Cgr
 {
-    Ref<Framebuffer> Framebuffer::Create()
+    Ref<Framebuffer> Framebuffer::Create(const FramebufferSpecification& spec)
     {
 		switch (RendererAPI::GetAPI())
 		{
@@ -15,7 +15,7 @@ namespace Cgr
 			CGR_CORE_ASSERT(false, "No Graphics API selected");
 			break;
 		case Cgr::API::OpenGL:
-			return CreateRef<OpenGLFramebuffer>();
+			return CreateRef<OpenGLFramebuffer>(spec);
 			break;
 		default:
 			break;

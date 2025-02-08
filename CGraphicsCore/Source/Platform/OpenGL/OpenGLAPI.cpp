@@ -58,6 +58,11 @@ namespace Cgr
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
+	void OpenGLAPI::DrawIndexed(uint32_t indexCount)
+	{
+		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
+	}
+
 	void OpenGLAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
 	{
 		vertexArray->Bind();

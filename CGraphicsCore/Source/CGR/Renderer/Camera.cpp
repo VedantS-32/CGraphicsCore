@@ -75,7 +75,7 @@ namespace Cgr
 		UpdateProjectionMatrix();
 	}
 
-	void Camera::SetViewportAspectRatio(float width, float height)
+	void Camera::SetViewportSize(float width, float height)
 	{
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
