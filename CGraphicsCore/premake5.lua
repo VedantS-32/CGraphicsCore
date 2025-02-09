@@ -40,7 +40,8 @@ project "CGraphicsCore"
 	}
 
 	postbuildcommands {
-        ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/CGraphicsSandbox")
+		("mkdir -p \"%{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox\"|| exit 0"),
+        ("cp %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/CGraphicsSandbox")
     }
 
 	links {
