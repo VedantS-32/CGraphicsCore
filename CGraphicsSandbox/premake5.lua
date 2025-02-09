@@ -1,5 +1,6 @@
 project "CGraphicsSandbox"
 	location "%{wks.location}/CGraphicsSandbox"
+	dependson { "CGraphicsCore" }
 	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
@@ -14,8 +15,8 @@ project "CGraphicsSandbox"
 	}
 
 	files {
-		"Source/**.h",
-		"Source/**.cpp"
+        "Source/**.h",
+        "Source/**.cpp"
 	}
 
 	includedirs {
@@ -29,14 +30,16 @@ project "CGraphicsSandbox"
 	}
 
 	links {
-		"imgui",
 		"ImGuizmo",
+		"imgui",
 		"CGraphicsCore"
 	}
 
+	filter "action:vs*"
+		buildoptions { "/utf-8" }
+
 	filter "system:windows"
 		systemversion "latest"
-        buildoptions { "/utf-8" }
 		defines {
 			"CGR_PLATFORM_WINDOWS"
 		}
