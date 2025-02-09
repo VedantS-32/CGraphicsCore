@@ -13,9 +13,9 @@
 [submodule "CGraphicsCore/Vendor/assimp"]
 	path = CGraphicsCore/Vendor/assimp
 	url = https://github.com/VedantS-32/assimp.git
-[submodule "CGraphicsCore/Vendor/ImGuizmo"]
-	path = CGraphicsCore/Vendor/ImGuizmo
-	url = https://github.com/VedantS-32/ImGuizmo.git
 [submodule "CGraphicsCore/Vendor/yaml-cpp"]
 	path = CGraphicsCore/Vendor/yaml-cpp
 	url = https://github.com/VedantS-32/yaml-cpp.git
+[submodule "CGraphicsCore/Vendor/ImGuizmo"]
+	path = CGraphicsCore/Vendor/ImGuizmo
+	url = https://github.com/VedantS-32/ImGuizmo.git

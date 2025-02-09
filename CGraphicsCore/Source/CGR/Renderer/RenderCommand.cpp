@@ -7,7 +7,7 @@ namespace Cgr
 {
     RendererAPI* RenderCommand::s_RendererAPI = new OpenGLAPI;
 
-    inline void RenderCommand::Init()
+    void RenderCommand::Init()
     {
         s_RendererAPI->Init();
     }

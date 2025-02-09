@@ -4,15 +4,26 @@
 #include <memory>
 #include <filesystem>
 
-#ifdef CGR_PLATFORM_WINDOWS
-	#if CGR_DYNAMIC_LINK
-		#ifdef CGR_BUILD_DLL
-			#define CGR_API __declspec(dllexport)
-		#else
-			#define CGR_API __declspec(dllimport)
+#ifndef CGR_API
+	#if defined(CGR_DYNAMIC_LINK)
+		#ifdef _MSC_VER // MSVC Compiler
+			#ifdef CGR_BUILD_DLL
+				#define CGR_API __declspec(dllexport)
+			#else
+				#define CGR_API __declspec(dllimport)
+			#endif
+		#else // GCC / Clang
+			#ifdef CGR_BUILD_DLL
+				#define CGR_API __attribute__((visibility("default")))
+			#else
+				#define CGR_API  // No import attribute needed for shared lib usage
+			#endif
 		#endif
+	#else
+		#define CGR_API // Static linking (empty definition)
 	#endif
 #endif
+
 
 #ifdef CGR_DEBUG
 #define CGR_ENABLE_ASSERTS

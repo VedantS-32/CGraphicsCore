@@ -9,9 +9,6 @@ project "CGraphicsCore"
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
-	pchheader "CGRpch.h"
-	pchsource "Source/CGRpch.cpp"
-
 	files {
 		"Source/**.h",
 		"Source/**.cpp",
@@ -42,6 +39,10 @@ project "CGraphicsCore"
 		"%{IncludeDir.entt}"
 	}
 
+	postbuildcommands {
+        ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/CGraphicsSandbox")
+    }
+
 	links {
 		"glfw",
 		"imgui",
@@ -50,13 +51,19 @@ project "CGraphicsCore"
 		"yaml-cpp"
 	}
 
-	postbuildcommands {
-        ("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/CGraphicsSandbox")
-    }
+	filter "action:vs*"
+		buildoptions { "/utf-8" }
+	 	pchheader "CGRpch.h"
+	 	pchsource "Source/CGRpch.cpp"
+	
+	filter "files:Vendor/ImGuizmo/**.cpp"
+		flags { "NoPCH" }
+
+	filter "files:Vendor/glad/src/glad.c"
+		flags { "NoPCH" }
 
 	filter "system:windows"
 		systemversion "latest"
-		buildoptions { "/utf-8" }
 		defines {
 			"CGR_PLATFORM_WINDOWS",
 			"CGR_DYNAMIC_LINK",
@@ -89,12 +96,6 @@ project "CGraphicsCore"
 			"GLFW_INCLUDE_NONE",
 			"YAML_CPP_STATIC_DEFINE"
 		}
-
-	filter "files:%{prj.name}/Vendor/ImGuizmo/**.cpp"
-		flags { "NoPCH" }
-
-	filter "files:Vendor/glad/src/glad.c"
-		flags { "NoPCH" }
 
 	filter "configurations:Debug"
 		defines "CGR_DEBUG"
