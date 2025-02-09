@@ -36,6 +36,16 @@ project "CGraphicsSandbox"
 	}
 
 	filter "action:vs*"
+	postbuildcommands {
+		("{COPY} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/* ./")
+	}
+
+	filter "action:not vs*"
+		postbuildcommands {
+			("cp -f %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/* ./")
+		}
+
+	filter "action:vs*"
 		buildoptions { "/utf-8" }
 
 	filter "system:windows"
