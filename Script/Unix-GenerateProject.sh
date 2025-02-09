@@ -2,7 +2,7 @@
 set +x
 
 pushd .. > /dev/null
-vendor/premake/bin/premake5.exe vs2022
+Vendor/premake/bin/premake5 gmake2
 popd > /dev/null
 
 read -p "Press [Enter] key to continue..."
