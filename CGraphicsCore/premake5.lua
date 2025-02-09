@@ -39,11 +39,6 @@ project "CGraphicsCore"
 		"%{IncludeDir.entt}"
 	}
 
-	postbuildcommands {
-		("mkdir -p \"%{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox\"|| exit 0"),
-        ("cp %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/CGraphicsSandbox")
-    }
-
 	links {
 		"glfw",
 		"imgui",
@@ -56,6 +51,16 @@ project "CGraphicsCore"
 		buildoptions { "/utf-8" }
 	 	pchheader "CGRpch.h"
 	 	pchsource "Source/CGRpch.cpp"
+		postbuildcommands {
+			("{MKDIR} %{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox"),
+			("{COPY} %{cfg.buildtarget.relpath} %{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox")
+		}
+	
+	filter "action:not vs*"
+		postbuildcommands {
+			("mkdir -p \"%{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox\"|| exit 0"),
+			("cp -f %{cfg.buildtarget.relpath} %{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox")
+		}
 	
 	filter "files:Vendor/ImGuizmo/**.cpp"
 		flags { "NoPCH" }
