@@ -1,4 +1,4 @@
-Asset: 2379748642384338621
+Asset: 6374953901764118687
 Material: Phong2
 Shader: Content/Shader/Phong.glsl
 Textures:
@@ -6,8 +6,8 @@ Textures:
   MossyCobbleNormal: Content/Texture/MossyCobble/MossyCobbleNormal.jpg
 Attributes:
   uColor: [1, 1, 1]
-  uIntensity: 1.5
+  uIntensity: 1
   uSpecularAlpha: 13.6
   uSpecularColor: [1, 1, 1]
-  uTiling: 1.8
+  uTiling: 1
   uTint: [1, 1, 1]

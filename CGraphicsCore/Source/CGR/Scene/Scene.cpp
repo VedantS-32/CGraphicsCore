@@ -45,7 +45,6 @@ namespace Cgr
 			auto [model, transform] = models.get<ModelComponent, TransformComponent>(entity);
 			auto modelProps = m_Renderer->GetModelPropsUniformBuffer();
 			int entityID = static_cast<int>(entity);
-			//CGR_CORE_TRACE("Entity ID: {0}", entityID);
 			modelProps->SetData(0, sizeof(uint32_t) * 4, &entityID);
 			modelProps->SetData(sizeof(uint32_t) * 4, sizeof(glm::mat4), glm::value_ptr(model.GetModel()->GetModelMatrix()));
 			model.GetModel()->UpdateTransform(transform.GetTransform());

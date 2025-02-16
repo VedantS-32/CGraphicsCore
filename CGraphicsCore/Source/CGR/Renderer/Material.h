@@ -25,7 +25,7 @@ namespace Cgr
 		void AddVariable(Args&& ... args)
 		{
 			auto variable = CreateRef<T>(std::forward<Args>(args)...);
-			m_ShaderVariables.push_back(variable);
+			m_ShaderVariables.emplace_back(variable);
 		}
 
 		bool HasVariable(const std::string& name) const

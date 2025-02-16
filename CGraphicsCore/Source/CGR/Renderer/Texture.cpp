@@ -23,23 +23,6 @@ namespace Cgr
         return nullptr;
     }
 
-    Ref<Texture2D> Texture2D::Create(const std::string& path)
-    {
-        switch (RendererAPI::GetAPI())
-        {
-        case Cgr::API::None:
-            CGR_CORE_ASSERT("No Graphics API selected");
-            break;
-        case Cgr::API::OpenGL:
-            return CreateRef<OpenGLTexture2D>(path);
-            break;
-        default:
-            break;
-        }
-
-        return nullptr;
-    }
-
     Ref<Texture2D> Texture2D::Create(const TextureSpecification& spec, const void* data)
     {
         switch (RendererAPI::GetAPI())

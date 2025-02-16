@@ -131,24 +131,23 @@ in VS_OUTModelProps
 
 void main()
 {
-	vec3 normal = texture(uTextures[1], vModelProps.TexCoord * vMaterialParams.Tiling).rgb;
-	normal = normalize(normal * 2.0 - 1.0);
-	normal = normal * 2.0 - 1.0;
+	vec3 normalMap = texture(uTextures[1], vModelProps.TexCoord * vMaterialParams.Tiling).rgb;
+	vec3 normal = normalize(normalMap * 2.0 - 1.0);
 	normal = normalize(vModelProps.Tbn * normal);
 	vec3 reflected = normalize(vModelProps.ReflectedDir);
 	vec3 lightPosition = normalize(vWorldSettings.LightPosition);
 
 	float diffuse = max(dot(normal, lightPosition), 0.0);
-	vec4 ambient = vec4(vWorldSettings.AmbientColor * vec3(texture(uTextures[0], vModelProps.TexCoord)), 1.0);
-	float phong = max(dot(reflected, vWorldSettings.CameraPosition), 0.0);
-	vec3 halfAngle = (lightPosition + vWorldSettings.CameraPosition) / length(lightPosition + vWorldSettings.CameraPosition);
-	float blinn = max(dot(normal, halfAngle), 0.0);
 
-	//FragColor = vec4(normal, 1.0);
-	//FragColor = vec4(vColor, 1.0) * (vIntensity * (diffuse + ((vec4(vSpecularColor, 1.0) * pow(blinn, vSpecularAlpha)))) + vec4(vAmbientColor, 1.0));
-	FragColor = (texture(uTextures[0], vModelProps.TexCoord * vMaterialParams.Tiling) * vec4(vMaterialParams.Tint, 1.0)) *
-	(vMaterialParams.Intensity * (diffuse + ((vec4(vMaterialParams.SpecularColor, 1.0) *
-	pow(blinn, vMaterialParams.SpecularAlpha)))) + ambient);
+	vec3 ambientColor = vWorldSettings.AmbientColor * vec3(texture(uTextures[0], vModelProps.TexCoord * vMaterialParams.Tiling));
+	vec4 ambient = vec4(ambientColor, 1.0);
+
+	vec3 halfAngle = normalize(lightPosition + vWorldSettings.CameraPosition);
+	float blinn = max(dot(normal, halfAngle), 0.0);
+	vec4 specular = vec4(vMaterialParams.SpecularColor, 1.0) * pow(blinn, vMaterialParams.SpecularAlpha);
+
+	vec4 baseColor = texture(uTextures[0], vModelProps.TexCoord * vMaterialParams.Tiling) * vec4(vMaterialParams.Tint, 1.0);
+	FragColor = baseColor * (vMaterialParams.Intensity * (diffuse + specular) + ambient);
 
 	EntityID = vModelProps.EntityID;
 }
