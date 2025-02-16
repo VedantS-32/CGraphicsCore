@@ -1,7 +1,8 @@
 # CGraphicsCore
 
 ### Prerequisites
-- C++
+- C++ compiler(tested with gcc, clang and msvc)
+- Make
 - Python
 - Git
 
@@ -12,6 +13,7 @@ git clone --recursive https://github.com/VedantS-32/CGraphicsCore.git
 
 ### Build Instructions
 - Go to "script" folder
+- Note: Currently due to some platform specifics, CGraphicsCore doesn't compile on Unix platforms, it will be supported in future
 - Run CGraphicsSetup script for your platform
 - Then run GenerateProject for your platform
 - By default it will generate Makefile, please change Script/GenerateProject to generate project files for your IDE
@@ -19,7 +21,7 @@ git clone --recursive https://github.com/VedantS-32/CGraphicsCore.git
 vendor\premake\bin\premake5.exe gmake2 #<-- Replace gmake2 with vs2022 for Visual Studio Solution
 ```
 - If you have generated Visual Studio Solution, .sln file will be in root directory
-- if you have generated Makefile, open terminal in root directory and enter following command to build CGraphicsCore. After building go to CGraphicsSandbox and launch the binary (CGrpahicsSandbox.exe for Windows).
+- if you have generated Makefile, open terminal in root directory and enter following command to build CGraphicsCore. After building go to CGraphicsSandbox and launch the binary (CGrpahicsSandbox.exe for Windows)
 ``` shell
 make -j #Number of core you want to allocate for compilation
 ```
