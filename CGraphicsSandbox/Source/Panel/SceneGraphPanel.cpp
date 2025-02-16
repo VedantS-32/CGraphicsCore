@@ -367,11 +367,12 @@ namespace Cgr
 
                         auto& textures = material->GetAllTextures();
                         bool removeTex = false;
-                        UUID texuuid;
+                        std::vector<Ref<Texture>>::iterator texIt;
                         ImGui::Text("Material Parameters");
                         int id = 0;
-                        for (auto& [uuid, texture] : textures)
+                        for (auto it = textures.begin(); it != textures.end(); ++it)
                         {
+                            auto& texture = *it;
                             auto& texName = texture->GetName();
                             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
                             ImGui::ImageButton(texName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(texture->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
@@ -393,7 +394,7 @@ namespace Cgr
                             ImGui::PushID(id);
                             if (ImGui::Button("Remove", { 100.0f, 24.0f }))
                             {
-                                texuuid = uuid;
+                                texIt = it;
                                 removeTex = true;
                             }
                             id++;
@@ -405,10 +406,10 @@ namespace Cgr
                         {
                             if (textures.size() <= 1)
                             {
-                                textures[texuuid] = m_DefaultTexture;
+                                textures[0] = m_DefaultTexture;
                             }
                             else
-                                textures.erase(texuuid);
+                                textures.erase(texIt);
                         }
                         removeTex = false;
 
@@ -418,7 +419,7 @@ namespace Cgr
                         ImGui::SetCursorPosX(buttonX);
                         if (ImGui::Button("Add Texture", { 100.0f, 24.0f }))
                         {
-                            material->AddTexture(texuuid, m_DefaultTexture);
+                            material->AddTexture(m_DefaultTexture);
                         }
                         ImGui::Spacing();
                         ImGui::Spacing();

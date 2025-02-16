@@ -7,7 +7,9 @@
 #include "ShaderDataType.h"
 #include "Texture.h"
 
+#include <map>
 #include <glm/glm.hpp>
+#include <vector>
 
 namespace Cgr
 {
@@ -23,7 +25,7 @@ namespace Cgr
 		void AddVariable(Args&& ... args)
 		{
 			auto variable = CreateRef<T>(std::forward<Args>(args)...);
-			m_ShaderVariables.emplace_back(variable);
+			m_ShaderVariables.push_back(variable);
 		}
 
 		bool HasVariable(const std::string& name) const
@@ -37,10 +39,13 @@ namespace Cgr
 			return false;
 		}
 		
-		std::vector<Ref<ShaderVariable>>& GetAllVariables() { return m_ShaderVariables; }
-		std::unordered_map<UUID, Ref<Texture>>& GetAllTextures() { return m_Textures; }
+		std::vector<Ref<ShaderVariable>>& GetAllVariables(){ return m_ShaderVariables; }
+		std::vector<Ref<Texture>>& GetAllTextures() { return m_Textures; }
 
-		void AddTexture(UUID uuid, Ref<Texture> texture) { m_Textures[uuid] = texture; }
+		void AddTexture(Ref<Texture> texture)
+		{
+			m_Textures.emplace_back(texture);
+		}
 
 		Ref<Shader> GetShader() const { return m_Shader; }
 
@@ -55,7 +60,7 @@ namespace Cgr
 
 	private:
 		Ref<Shader> m_Shader;
-		std::unordered_map<UUID, Ref<Texture>> m_Textures;
+		std::vector<Ref<Texture>> m_Textures;
 		std::string m_Name = "Default";
 
 		// Material paramters stored in RAM

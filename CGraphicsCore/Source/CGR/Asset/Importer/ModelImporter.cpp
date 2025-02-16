@@ -87,16 +87,14 @@ namespace Cgr
 			handle = assetManager->ImportAsset(str.C_Str());
 
 			auto texture = assetManager->GetAsset<Texture2D>(handle);
-			UUID uuid;
-			material->AddTexture(uuid, texture);
+			material->AddTexture(texture);
 		}
 		if (material->GetAllTextures().size() == 0)
 		{
 			auto assetManager = Application::Get().GetAssetManager();
 			auto defaultTextureHandle = assetManager->GetDefaultAssetHandle(AssetType::Texture2D);
 			Ref<Texture2D> texture = assetManager->GetAsset<Texture2D>(defaultTextureHandle);
-			UUID uuid;
-			material->AddTexture(uuid, texture);
+			material->AddTexture(texture);
 		}
 	}
 

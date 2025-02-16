@@ -9,7 +9,7 @@ from pathlib import Path
 
 import urllib.request
 
-premakeVersion = "5.0.0-beta2"
+premakeVersion = "5.0.0-beta4"
 premakeZipUrls = f"https://github.com/premake/premake-core/releases/download/v{premakeVersion}/premake-{premakeVersion}-windows.zip"
 premakeLicenseUrl = "https://raw.githubusercontent.com/premake/premake-core/master/LICENSE.txt"
 premakeDirectory = "../Vendor/premake/bin"

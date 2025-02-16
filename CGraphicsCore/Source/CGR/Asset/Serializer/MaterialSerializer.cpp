@@ -23,7 +23,7 @@ namespace Cgr
 
         out << YAML::Key << "Textures" << YAML::Value << YAML::BeginMap;
         const auto& textures = m_Material->GetAllTextures();
-        for (auto& [uuid, texture] : textures)
+        for (auto& texture : textures)
         {
             out << YAML::Key << texture->GetName() << YAML::Value << assetManager->GetFilePath(texture->Handle).string();
         }
@@ -105,9 +105,8 @@ namespace Cgr
         auto textures = data["Textures"];
         for (auto texture : textures)
         {
-            UUID uuid;
             auto importedTex = assetManager->GetAsset<Texture>(assetManager->ImportAsset(texture.second.as<std::string>()));
-            m_Material->AddTexture(uuid, importedTex);
+            m_Material->AddTexture(importedTex);
         }
 
         auto& parameters = m_Material->GetAllVariables();

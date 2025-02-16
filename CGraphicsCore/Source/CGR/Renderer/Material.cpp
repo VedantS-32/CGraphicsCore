@@ -11,6 +11,7 @@ namespace Cgr
         auto defaultShaderHandle = assetManager->GetDefaultAssetHandle(AssetType::Shader);
         m_Shader = assetManager->GetAsset<Shader>(defaultShaderHandle);
         m_Shader->ExtractSSBOParameters(this);
+        m_Textures.reserve(6);
     }
 
     Material::Material(Ref<Shader> shader)

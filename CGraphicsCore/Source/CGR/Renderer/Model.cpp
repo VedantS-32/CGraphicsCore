@@ -157,7 +157,7 @@ namespace Cgr
 				auto shader = material->GetShader();
 				shader->Bind();
 				uint32_t i = 0;
-				for (auto& [name, texture] : material->GetAllTextures())
+				for (auto& texture : material->GetAllTextures())
 				{
 					texture->BindActiveTexture(i);
 					shader->Set1i("uTextures", i, i);
