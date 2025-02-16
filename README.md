@@ -12,7 +12,8 @@ git clone --recursive https://github.com/VedantS-32/CGraphicsCore.git
 
 ### Build Instructions
 - Go to "script" folder
-- Run GenerateProject for your platform
+- Run CGraphicsSetup script for your platform
+- Then run GenerateProject for your platform
 - By default it will generate Makefile, please change Script/GenerateProject to generate project files for your IDE
 ``` shell
 vendor\premake\bin\premake5.exe gmake2 #<-- Replace gmake2 with vs2022 for Visual Studio Solution
