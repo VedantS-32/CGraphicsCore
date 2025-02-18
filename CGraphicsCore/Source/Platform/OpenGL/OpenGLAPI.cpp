@@ -63,6 +63,14 @@ namespace Cgr
 		glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, nullptr);
 	}
 
+	void OpenGLAPI::EnableDepthMask(bool enable)
+	{
+		if (enable)
+			glDepthMask(GL_TRUE);
+		else
+			glDepthMask(GL_FALSE);
+	}
+
 	void OpenGLAPI::DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount)
 	{
 		vertexArray->Bind();

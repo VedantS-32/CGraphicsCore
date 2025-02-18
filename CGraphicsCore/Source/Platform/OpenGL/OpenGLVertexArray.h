@@ -16,9 +16,12 @@ namespace Cgr
 		virtual void Bind() override;
 		virtual void Unbind() override;
 
+		virtual const bool IsBinded() override { return m_IsBinded; }
 		virtual void SetBufferLayout(const BufferLayout& bufferLayout) override;
+
 	private:
 		uint32_t m_RendererID;
+		bool m_IsBinded = false;
 		BufferLayout m_BufferLayout;
 	};
 }

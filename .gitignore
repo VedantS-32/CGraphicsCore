@@ -400,6 +400,8 @@ FodyWeavers.xsd
 # Binary Files
 bin/
 bin-int/
+CGraphicsSandbox/*.dll
+CGraphicsSandbox/*.exe
 
 # Solution File
 *.sln
@@ -417,5 +419,7 @@ vendor/glm
 A2_Transformations/res/mesh
 
 # MakeFiles
-
 MakeFile
+
+# Local files
+CGraphicsSandbox/Content/Generated/Local

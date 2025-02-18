@@ -30,6 +30,11 @@ namespace Cgr
 			s_RendererAPI->SetViewport(x, y, width, height);
 		}
 
+		static void EnableDepthMask(bool enable)
+		{
+			s_RendererAPI->EnableDepthMask(enable);
+		}
+
 		// For Client Application
 		static RendererAPI& GetRendererAPI();
 

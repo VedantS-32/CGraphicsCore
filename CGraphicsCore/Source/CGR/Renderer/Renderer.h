@@ -9,6 +9,7 @@
 namespace Cgr
 {
 	class Camera;
+	class CubeMap;
 
 	class CGR_API Renderer
 	{
@@ -17,12 +18,12 @@ namespace Cgr
 		
 		//Always call Renderer::OnUpdate before calling ActiveScene::OnUpdate, as it updates shader buffer
 		void OnUpdate(Camera& camera);
-		void AddModel(Ref<Model> model);
+		void RenderCubeMap(Camera& camera);
 		void SetShaderBuffer(Ref<Shader> shader);
-		//void AddShader(const std::string& shaderPath);
 		Ref<UniformBuffer> GetModelCommonsUniformBuffer() { return m_ModelCommons; }
 		Ref<UniformBuffer> GetModelPropsUniformBuffer() { return m_ModelProps; }
-		Ref<VertexArray> GetVertexArray() { return m_VertexArray; }
+		Ref<VertexArray> GetModelVertexArray() { return m_ModelVertexArray; }
+		void BindModelVertexArray() const;
 		Ref<ShaderStorageBuffer> GetSSBO() { return m_SSBO; }
 		std::vector<Ref<Model>>& GetModels() { return m_Models; }
 
@@ -38,11 +39,12 @@ namespace Cgr
 
 	private:
 		BufferLayout m_BufferLayout;
-		Ref<VertexArray> m_VertexArray;
+		Ref<VertexArray> m_ModelVertexArray;
 
 		Ref<UniformBuffer> m_ModelCommons;
 		Ref<UniformBuffer> m_ModelProps;
 		Ref<ShaderStorageBuffer> m_SSBO;
+		Ref<CubeMap> m_CubeMap;
 
 		std::vector<Ref<Model>> m_Models;
 	};

@@ -10,6 +10,7 @@ namespace Cgr
 	{
 		glCreateVertexArrays(1, &m_RendererID);
 		glBindVertexArray(m_RendererID);
+		m_IsBinded = true;
 	}
 
 	OpenGLVertexArray::~OpenGLVertexArray()
@@ -20,6 +21,7 @@ namespace Cgr
 	void OpenGLVertexArray::Bind()
 	{
 		glBindVertexArray(m_RendererID);
+		m_IsBinded = true;
 	}
 
 	void OpenGLVertexArray::Unbind()

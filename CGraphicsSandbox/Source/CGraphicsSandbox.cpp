@@ -13,7 +13,6 @@ namespace Cgr
 		CGraphicsSandbox() : Application("CGraphicsSandbox", 1920, 1080)
 		{
 			ImGui::SetCurrentContext(Application::Get().GetUILayer()->GetImGuiContext());
-			//std::cout << "ImGui context : " << ImGui::GetCurrentContext() << std::endl;
 			PushLayer(new EditorLayer("Editor"));
 		}
 	};

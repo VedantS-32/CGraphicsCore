@@ -22,6 +22,8 @@ namespace Cgr
 		virtual void DrawIndexed(const Ref<VertexArray>& vertexArray, uint32_t indexCount) = 0;
 		virtual void DrawIndexed(uint32_t indexCount) = 0;
 
+		virtual void EnableDepthMask(bool enable) = 0;
+
 		static API GetAPI() { return m_API; }
 
 	protected:

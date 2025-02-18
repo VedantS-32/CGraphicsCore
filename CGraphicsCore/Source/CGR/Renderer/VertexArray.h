@@ -13,6 +13,7 @@ namespace Cgr
 		virtual void Bind() = 0;
 		virtual void Unbind() = 0;
 
+		virtual const bool IsBinded() = 0;
 		virtual void SetBufferLayout(const BufferLayout& bufferLayout) = 0;
 
 	public:

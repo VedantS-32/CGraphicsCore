@@ -73,9 +73,15 @@ namespace Cgr
 
         m_Camera.OnUpdate(ts);
 
+        // Updating shader buffers
         m_Renderer->OnUpdate(m_Camera);
 
+        // Drawing models
+        m_Renderer->BindModelVertexArray();
         m_ActiveScene->OnUpdate(ts, m_Camera);
+
+        // Rendering CubeMap
+        m_Renderer->RenderCubeMap(m_Camera);
 
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_ViewportBounds[0].x;
@@ -89,7 +95,6 @@ namespace Cgr
         {
             int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
             m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
-            //CGR_INFO("Pixel data: {0}", pixelData);
         }
 
         m_Framebuffer->Unbind();
