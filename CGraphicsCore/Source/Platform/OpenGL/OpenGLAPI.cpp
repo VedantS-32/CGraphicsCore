@@ -8,7 +8,7 @@ namespace Cgr
 {
 	API RendererAPI::m_API = API::OpenGL;
 
-#ifdef CGR_DEBUG
+#ifndef CGR_DEBUG
 
 	static void GLAPIENTRY
 		MessageCallback(GLenum source,
@@ -19,8 +19,36 @@ namespace Cgr
 			const GLchar* message,
 			const void* userParam)
 	{
-		type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "";
-		//CGR_CORE_TRACE("GL CALLBACK: type = 0x{0}, severity = 0x{1}, message = {2}", type, severity, message);
+		std::string errorType;
+		switch (type)
+		{
+		case GL_DEBUG_TYPE_ERROR:               errorType = "ERROR"; break;
+		case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR: errorType = "DEPRECATED"; break;
+		case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:  errorType = "UNDEFINED_BEHAVIOR"; break;
+		case GL_DEBUG_TYPE_PORTABILITY:         errorType = "PORTABILITY"; break;
+		case GL_DEBUG_TYPE_PERFORMANCE:         errorType = "PERFORMANCE"; break;
+		case GL_DEBUG_TYPE_MARKER:              errorType = "MARKER"; break;
+		case GL_DEBUG_TYPE_PUSH_GROUP:          errorType = "PUSH_GROUP"; break;
+		case GL_DEBUG_TYPE_POP_GROUP:           errorType = "POP_GROUP"; break;
+		case GL_DEBUG_TYPE_OTHER:               errorType = "OTHER"; break;
+		default: errorType = "UNKNOWN"; break;
+		}
+
+		if ( severity != GL_DEBUG_SEVERITY_LOW && severity != GL_DEBUG_SEVERITY_NOTIFICATION)
+		{
+			type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "";
+			switch (severity)
+			{
+			case GL_DEBUG_SEVERITY_MEDIUM:
+				CGR_CORE_WARN("GL CALLBACK: type = {0}, severity = MEDIUM, message = {1}", errorType, message);
+				break;
+			case GL_DEBUG_SEVERITY_HIGH:
+				CGR_CORE_ERROR("GL CALLBACK: type = {0}, severity = HIGH, message = {1}", errorType, message);
+				break;
+			default:
+				break;
+			}
+		}
 	}
 
 	static void SetGLDebugMessageCallback()

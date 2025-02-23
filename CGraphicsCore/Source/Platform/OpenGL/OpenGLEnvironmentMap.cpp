@@ -112,24 +112,7 @@ namespace Cgr
 		ATTRIBUTE("Skybox Intensity", m_Intensity);
 		ATTRIBUTE("Redness", m_Red);
 
-
-
-		float triangleVertices[] = {
-			-1.0f, -1.0f,   // Bottom-left
-			 3.0f, -1.0f,   // Bottom-right (over-extended)
-			-1.0f,  3.0f    // Top-left (over-extended)
-		};
-
-		m_ENVMapVertexArray = VertexArray::Create();
-		BufferLayout layout =
-		{
-			{ ShaderDataType::Float2, "aPosition"}
-		};
-
-		m_ENVMapVertexBuffer = VertexBuffer::Create(sizeof(triangleVertices), triangleVertices, BufferDrawUsage::StaticDraw);
-		m_ENVMapVertexArray->SetBufferLayout(layout);
-
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -146,6 +129,7 @@ namespace Cgr
 	void OpenGLSkybox::Bind()
 	{
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
+		glBindTextureUnit(0, m_RendererID);
 	}
 
 	void OpenGLSkybox::UnBind()
@@ -169,14 +153,13 @@ namespace Cgr
 	void OpenGLSkybox::Render(Camera& camera)
 	{
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
-		m_ENVMapVertexArray->Bind();
-		m_ENVMapVertexBuffer->Bind();
+		glBindTextureUnit(0, m_RendererID);
 		m_Shader->Bind();
 		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(m_Rotation), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 inverseVP = glm::inverse(camera.GetViewProjectionMatrix() * rotationMatrix);
 		m_Shader->SetMat4f("uInverseVP", inverseVP);
-		m_Shader->Set1i("uSkybox", m_RendererID);
+		m_Shader->Set1i("uSkybox", 0);
 		m_Shader->Set1f("uIntensity", m_Intensity);
 		m_Shader->Set1f("uRed", m_Red);
 

@@ -29,8 +29,6 @@ namespace Cgr
 		virtual void Render(Camera& camera) override;
 
 	private:
-		Ref<VertexArray> m_ENVMapVertexArray;
-		Ref<VertexBuffer> m_ENVMapVertexBuffer;
 		Ref<Material> m_ENVMapMaterial;
 		Ref<Shader> m_Shader;
 		std::vector<Ref<ShaderVariable>> m_ShaderVariables;
@@ -38,7 +36,7 @@ namespace Cgr
 
 		float m_Rotation = 90.0f;
 		float m_Intensity = 1.0f;
-		float m_Red = 0.1f;
+		float m_Red = 1.0f;
 
 	private:
 		uint32_t m_RendererID;

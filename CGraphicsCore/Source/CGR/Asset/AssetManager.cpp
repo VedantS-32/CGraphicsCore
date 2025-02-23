@@ -42,7 +42,7 @@ namespace Cgr
             "Content/Shader/Default.csmat",
             "Content/Model/Cube.obj",
             "Content/Model/Cube.csmesh",
-            //"Content/Texture/Skybox/MilkyWay.cskybox"
+            "Content/Texture/Skybox/MilkyWay.cskybox"
         };
 
         for (auto& path : defaultAssets)

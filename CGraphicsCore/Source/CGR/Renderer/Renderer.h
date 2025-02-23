@@ -16,6 +16,8 @@ namespace Cgr
 	public:
 		Renderer();
 		
+		void Init();
+
 		//Always call Renderer::OnUpdate before calling ActiveScene::OnUpdate, as it updates shader buffer
 		void OnUpdate(Camera& camera);
 		void RenderSkybox(Camera& camera);
@@ -39,7 +41,10 @@ namespace Cgr
 
 	private:
 		BufferLayout m_BufferLayout;
+		BufferLayout m_ENVLayout;
 		Ref<VertexArray> m_ModelVertexArray;
+		Ref<VertexArray> m_ENVMapVertexArray;
+		Ref<VertexBuffer> m_ENVMapVertexBuffer;
 
 		Ref<UniformBuffer> m_ModelCommons;
 		Ref<UniformBuffer> m_ModelProps;

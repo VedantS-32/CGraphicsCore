@@ -10,10 +10,27 @@
 
 static float offset = 0.0f;
 
+static float s_TriangleVertices[] = {
+	-1.0f, -1.0f,   // Bottom-left
+	 3.0f, -1.0f,   // Bottom-right (over-extended)
+	-1.0f,  3.0f    // Top-left (over-extended)
+};
+
 namespace Cgr
 {
 	Renderer::Renderer()
 		: m_AmbientLight(0.25f, 0.25f, 0.25f), m_LightPosition(1.0f, 1.0f, 40.0f)
+	{
+		m_WorldSettings = UniformBuffer::Create("WorldSettings");
+		m_ModelCommons = UniformBuffer::Create("ModelCommons");
+		m_ModelProps = UniformBuffer::Create("ModelProps");
+
+		m_WorldSettings->SetData(0, sizeof(glm::vec3), glm::value_ptr(glm::vec3(1.0f)));
+		m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_AmbientLight));
+		m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_LightPosition));
+	}
+
+	void Renderer::Init()
 	{
 		m_ModelVertexArray = VertexArray::Create();
 		m_SSBO = ShaderStorageBuffer::Create();
@@ -26,24 +43,24 @@ namespace Cgr
 			{ ShaderDataType::Float3, "aTangent" }
 		};
 
-		m_ModelVertexArray->Bind();
-		m_WorldSettings = UniformBuffer::Create("WorldSettings");
-		m_ModelCommons = UniformBuffer::Create("ModelCommons");
-		m_ModelProps = UniformBuffer::Create("ModelProps");
+		m_ENVMapVertexArray = VertexArray::Create();
+		m_ENVMapVertexBuffer = VertexBuffer::Create(sizeof(s_TriangleVertices), s_TriangleVertices, BufferDrawUsage::StaticDraw);
+
+		m_ENVLayout =
+		{
+			{ ShaderDataType::Float2, "aPosition" }
+		};
+
+		m_ENVMapVertexArray->SetBufferLayout(m_ENVLayout);
 
 		auto assetManager = Application::Get().GetAssetManager();
-		auto handle = assetManager->ImportAsset("Content/Texture/Skybox/MilkyWay.cskybox");
+		auto handle = assetManager->GetDefaultAssetHandle(AssetType::Skybox);
 		m_Skybox = assetManager->GetAsset<Skybox>(handle);
-
-		m_WorldSettings->SetData(0, sizeof(glm::vec3), glm::value_ptr(glm::vec3(1.0f)));
-		m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_AmbientLight));
-		m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_LightPosition));
 	}
 
 	void Renderer::OnUpdate(Camera& camera)
 	{
 		m_WorldSettings->SetData(0, sizeof(glm::vec3), glm::value_ptr(camera.GetPosition()));
-
 		m_ModelCommons->SetData(0, sizeof(glm::mat4), glm::value_ptr(camera.GetViewMatrix()));
 		m_ModelCommons->SetData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewProjectionMatrix()));
 	}
@@ -51,6 +68,9 @@ namespace Cgr
 	void Renderer::RenderSkybox(Camera& camera)
 	{
 		RenderCommand::EnableDepthMask(false);
+		m_ENVMapVertexArray->Bind();
+		m_ENVMapVertexBuffer->Bind();
+		m_ENVMapVertexArray->SetBufferLayout(m_ENVLayout);
 		m_Skybox->Render(camera);
 		RenderCommand::EnableDepthMask(true);
 	}

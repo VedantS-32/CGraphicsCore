@@ -35,11 +35,13 @@ namespace Cgr
         m_AssetManager = new AssetManager;
         m_Renderer = new Renderer;
         m_AssetManager->LoadDefaultAssets();
+        m_Renderer->Init();
         PushOverlay(m_ImGuiLayer);
     }
 
     Application::~Application()
     {
+        delete m_ReflectionSystem;
         delete m_ImGuiLayer;
         delete m_AssetManager;
         delete m_Renderer;
