@@ -1,6 +1,7 @@
 #include "CGRpch.h"
 #include "Camera.h"
 
+#include "CGR/Core/Application.h"
 #include "CGR/Core/Input.h"
 #include "CGR/Core/KeyCode.h"
 #include "CGR/Core/MouseButtonCode.h"
@@ -12,6 +13,13 @@
 
 namespace Cgr
 {
+	Camera::Camera()
+	{
+		REFLECT();
+
+		ATTRIBUTE("Field of View", m_PerspectiveFov);
+	}
+
 	void Camera::OnUpdate(Timestep ts)
 	{
 		const glm::vec2& mouse{ Input::GetMouseX(), Input::GetMouseY() };
@@ -55,7 +63,7 @@ namespace Cgr
 		dispatcher.Dispatch<MouseScrolledEvent>(CGR_BIND_EVENT_FN(Camera::OnMouseScroll));
 	}
 
-	void Camera::SetPerspective(double fov, double nearClip, double farClip)
+	void Camera::SetPerspective(float fov, double nearClip, double farClip)
 	{
 		m_ProjectionType = ProjectionType::Perspective;
 		m_PerspectiveFov = fov;
@@ -95,6 +103,11 @@ namespace Cgr
 
 		return false;
 
+	}
+
+	void Camera::OnAttributeChange()
+	{
+		UpdateProjectionMatrix();
 	}
 
 	void Camera::UpdateOrientation(const glm::vec2& delta)

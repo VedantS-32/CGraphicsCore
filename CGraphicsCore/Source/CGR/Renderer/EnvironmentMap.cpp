@@ -6,7 +6,7 @@
 
 namespace Cgr
 {
-    Ref<CubeMap> CubeMap::Create()
+    Ref<Skybox> Skybox::Create()
     {
         switch (RendererAPI::GetAPI())
         {
@@ -14,7 +14,7 @@ namespace Cgr
             CGR_CORE_ASSERT("No Graphics API selected");
             break;
         case Cgr::API::OpenGL:
-            return CreateRef<OpenGLCubeMap>();
+            return CreateRef<OpenGLSkybox>();
             break;
         default:
             break;

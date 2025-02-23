@@ -30,7 +30,10 @@ namespace Cgr
 		m_WorldSettings = UniformBuffer::Create("WorldSettings");
 		m_ModelCommons = UniformBuffer::Create("ModelCommons");
 		m_ModelProps = UniformBuffer::Create("ModelProps");
-		m_CubeMap = CubeMap::Create();
+
+		auto assetManager = Application::Get().GetAssetManager();
+		auto handle = assetManager->ImportAsset("Content/Texture/Skybox/MilkyWay.cskybox");
+		m_Skybox = assetManager->GetAsset<Skybox>(handle);
 
 		m_WorldSettings->SetData(0, sizeof(glm::vec3), glm::value_ptr(glm::vec3(1.0f)));
 		m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_AmbientLight));
@@ -45,10 +48,10 @@ namespace Cgr
 		m_ModelCommons->SetData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewProjectionMatrix()));
 	}
 
-	void Renderer::RenderCubeMap(Camera& camera)
+	void Renderer::RenderSkybox(Camera& camera)
 	{
 		RenderCommand::EnableDepthMask(false);
-		m_CubeMap->Render(camera);
+		m_Skybox->Render(camera);
 		RenderCommand::EnableDepthMask(true);
 	}
 

@@ -25,10 +25,12 @@ layout(location = 1) out int EntityID;
 
 in vec3 vDirection;
 
+uniform float uIntensity;
+uniform float uRed;
 uniform samplerCube uSkybox;
 
 void main()
 {
-    FragColor = texture(uSkybox, vDirection);
+    FragColor = texture(uSkybox, vDirection) * vec4(uRed, 1.0, 1.0, 1.0) * uIntensity;
     EntityID = -1;
 }

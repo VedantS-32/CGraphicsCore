@@ -36,6 +36,7 @@ namespace Cgr
 
 		AssetManager* m_AssetManager;
 		Renderer* m_Renderer;
+		Reflection* m_ReflectionSystem;
 
 		Ref<Scene> m_ActiveScene;
 		Entity m_HoveredEntity;

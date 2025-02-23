@@ -25,8 +25,8 @@ namespace Cgr
 			case Cgr::AssetType::Texture2D:
 				return "Texture2D";
 				break;
-			case Cgr::AssetType::SkyBox:
-				return "SkyBox";
+			case Cgr::AssetType::Skybox:
+				return "Skybox";
 				break;
 			case Cgr::AssetType::Shader:
 				return "Shader";

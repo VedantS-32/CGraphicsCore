@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CGR/Core/Core.h"
+#include "CGR/Core/Reflection.h"
 #include "CGR/Core/Timestep.h"
 #include "CGR/Event/Event.h"
 #include "CGR/Event/MouseEvent.h"
@@ -21,18 +22,21 @@ namespace Cgr
 	class CGR_API Camera
 	{
 	public:
+		CLASS(Camera);
+		Camera();
 		virtual ~Camera() {}
 
 		void OnUpdate(Timestep ts);
 		void OnEvent(Event& e);
 
-		void SetPerspective(double fov, double nearClip = 0.01f, double farClip = 10000.0f);
+		void SetPerspective(float fov, double nearClip = 0.01f, double farClip = 10000.0f);
 		void SetOrthographic(double size, double nearClip = -1000.0f, double farClip = 1000.0f);
 		void SetViewportSize(float width, float height);
 
 		const glm::mat4& GetProjectionMatrix() { return m_ProjectionMatrix; }
 		const glm::mat4& GetViewMatrix() { return m_ViewMatrix; }
 		const glm::mat4& GetViewProjectionMatrix() { return m_ViewProjectionMatrix; }
+		void UpdateProjectionMatrix();
 
 	public:
 		const glm::vec3& GetPosition() { return m_Position; }
@@ -44,7 +48,6 @@ namespace Cgr
 	private:
 		void UpdateOrientation(const glm::vec2& delta);
 
-		void UpdateProjectionMatrix();
 		void UpdateViewMatrix();
 		void UpdateViewProjectionMatrix();
 
@@ -65,7 +68,7 @@ namespace Cgr
 		glm::vec3 m_Orientation{ 0.0f, 1.0f, -0.5f };
 		glm::vec3 m_UpDirection{ 0.0f, 0.0f, 1.0f };
 
-		double m_PerspectiveFov = 45.0f;
+		float m_PerspectiveFov = 45.0f;
 		double m_PerspectiveNear = 0.1f, m_PerspectiveFar = 10000.0f;
 
 		double m_OrthographicSize = 10.0f;

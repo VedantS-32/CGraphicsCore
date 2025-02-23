@@ -15,9 +15,6 @@ namespace Cgr
 									virtual void* GetValue() override { return static_cast<void*>(&m_Variable); }\
 									virtual int64_t GetOffset() override { return m_Offset; }
 
-
-	//using ShaderVariableTuple = std::tuple<float, glm::vec2, glm::vec3, glm::vec4, glm::mat3, glm::mat4, int, glm::ivec2, glm::ivec3, glm::ivec4, bool>;
-
 	class CGR_API ShaderVariable
 	{
 	public:

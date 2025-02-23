@@ -30,6 +30,7 @@ namespace Cgr
 
         m_EventManager = EventManager(&m_LayerStack);
 
+        m_ReflectionSystem = new Reflection;
         m_ImGuiLayer = new ImGuiLayer;
         m_AssetManager = new AssetManager;
         m_Renderer = new Renderer;
@@ -98,6 +99,11 @@ namespace Cgr
     void Application::Close()
     {
         m_IsRunning = false;
+    }
+
+    Reflection* Application::GetReflectionSystem()
+    {
+        return m_ReflectionSystem;
     }
 
     Application& Application::Get()

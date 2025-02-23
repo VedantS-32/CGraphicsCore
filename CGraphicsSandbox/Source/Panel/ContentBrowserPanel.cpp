@@ -96,6 +96,12 @@ namespace Cgr
 					m_Handle = assetManager->ImportAsset(assetPath);
 					icon = assetManager->GetAsset<Texture2D>(m_Handle);
 				}
+				else if (extension == ".cskybox")
+				{
+					assetManager->ImportAsset(assetPath);
+					icon = m_IconMap["Shader"];
+					m_Handle = icon->Handle;
+				}
 				else
 				{
 					icon = m_IconMap["File"];

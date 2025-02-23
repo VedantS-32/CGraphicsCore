@@ -16,7 +16,8 @@ namespace Cgr
             { ".csmat", AssetType::Material},
             { ".obj", AssetType::Model },
             { ".fbx", AssetType::Model },
-            { ".csmesh", AssetType::Model }
+            { ".csmesh", AssetType::Model },
+            { ".cskybox", AssetType::Skybox }
         };
 
         static AssetType GetAssetTypeFromExtension(std::filesystem::path extension)
@@ -40,7 +41,8 @@ namespace Cgr
             "Content/Shader/Default.glsl",
             "Content/Shader/Default.csmat",
             "Content/Model/Cube.obj",
-            "Content/Model/Cube.csmesh"
+            "Content/Model/Cube.csmesh",
+            //"Content/Texture/Skybox/MilkyWay.cskybox"
         };
 
         for (auto& path : defaultAssets)

@@ -2,6 +2,7 @@
 
 #include "Core.h"
 #include "Window.h"
+#include "Reflection.h"
 #include "CGR/Event/MouseEvent.h"
 #include "CGR/Asset/AssetManager.h"
 #include "CGR/Renderer/Renderer.h"
@@ -26,6 +27,7 @@ namespace Cgr
 		void Close();
 
 		const Window& GetWindow() const { return *m_Window; }
+		Reflection* GetReflectionSystem();
 		ImGuiLayer* GetUILayer() { return m_ImGuiLayer; }
 		AssetManager* GetAssetManager() { return m_AssetManager; }
 		Renderer* GetRenderer() { return m_Renderer; }
@@ -41,6 +43,7 @@ namespace Cgr
 
 	private:
 		static Application* s_Application;
+		Reflection* m_ReflectionSystem;
 		AssetManager* m_AssetManager;
 
 		ImGuiLayer* m_ImGuiLayer;

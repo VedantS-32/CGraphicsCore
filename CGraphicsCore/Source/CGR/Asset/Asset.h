@@ -11,7 +11,7 @@ namespace Cgr
 	{
 		None = 0,
 		Texture2D,
-		SkyBox,
+		Skybox,
 		Shader,
 		Material,
 		Model

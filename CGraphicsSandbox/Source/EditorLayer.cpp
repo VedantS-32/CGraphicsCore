@@ -15,6 +15,7 @@ namespace Cgr
     {
         m_AssetManager = Application::Get().GetAssetManager();
         m_Renderer = Application::Get().GetRenderer();
+        m_ReflectionSystem = Application::Get().GetReflectionSystem();
 
         m_ActiveScene = CreateRef<Scene>();
         auto entity = m_ActiveScene->CreateEntity("FirstEntity");
@@ -80,8 +81,8 @@ namespace Cgr
         m_Renderer->BindModelVertexArray();
         m_ActiveScene->OnUpdate(ts, m_Camera);
 
-        // Rendering CubeMap
-        m_Renderer->RenderCubeMap(m_Camera);
+        // Rendering Skybox
+        m_Renderer->RenderSkybox(m_Camera);
 
         auto [mx, my] = ImGui::GetMousePos();
         mx -= m_ViewportBounds[0].x;
@@ -273,10 +274,15 @@ namespace Cgr
         ImGui::Text(txt.c_str());
         if (ImGui::ColorEdit4("Clear color", glm::value_ptr(m_ClearColor)))
             RenderCommand::SetClearColor(m_ClearColor);
-        if (ImGui::ColorEdit3("AmbientLight", glm::value_ptr(m_Renderer->m_AmbientLight)))
+        if (ImGui::ColorEdit3("Ambient Light", glm::value_ptr(m_Renderer->m_AmbientLight)))
             m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_AmbientLight));
-        if (ImGui::DragFloat3("LightPosition", glm::value_ptr(m_Renderer->m_LightPosition)))
+        if (ImGui::DragFloat3("Light Position", glm::value_ptr(m_Renderer->m_LightPosition)))
             m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_LightPosition));
+        
+        m_ReflectionSystem->ReflectClass("OpenGLSkybox");
+        m_ReflectionSystem->ReflectClass("Camera");
+        //m_Camera.UpdateProjectionMatrix();
+
         ImGui::End();
 
         m_ContentBrowserPanel->OnImGuiRender();

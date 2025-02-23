@@ -1,0 +1,12 @@
+Asset: 428922
+Skybox: Forest
+Shader: Content/Shader/Skybox.glsl
+Textures:
+  0: Content/Texture/Skybox/Forest/px.jpg
+  1: Content/Texture/Skybox/Forest/nx.jpg
+  2: Content/Texture/Skybox/Forest/py.jpg
+  3: Content/Texture/Skybox/Forest/ny.jpg
+  4: Content/Texture/Skybox/Forest/pz.jpg
+  5: Content/Texture/Skybox/Forest/nz.jpg
+Attributes:
+  uIntensity: 1

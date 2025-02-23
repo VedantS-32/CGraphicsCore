@@ -9,7 +9,7 @@
 namespace Cgr
 {
 	class Camera;
-	class CubeMap;
+	class Skybox;
 
 	class CGR_API Renderer
 	{
@@ -18,7 +18,7 @@ namespace Cgr
 		
 		//Always call Renderer::OnUpdate before calling ActiveScene::OnUpdate, as it updates shader buffer
 		void OnUpdate(Camera& camera);
-		void RenderCubeMap(Camera& camera);
+		void RenderSkybox(Camera& camera);
 		void SetShaderBuffer(Ref<Shader> shader);
 		Ref<UniformBuffer> GetModelCommonsUniformBuffer() { return m_ModelCommons; }
 		Ref<UniformBuffer> GetModelPropsUniformBuffer() { return m_ModelProps; }
@@ -44,7 +44,7 @@ namespace Cgr
 		Ref<UniformBuffer> m_ModelCommons;
 		Ref<UniformBuffer> m_ModelProps;
 		Ref<ShaderStorageBuffer> m_SSBO;
-		Ref<CubeMap> m_CubeMap;
+		Ref<Skybox> m_Skybox;
 
 		std::vector<Ref<Model>> m_Models;
 	};

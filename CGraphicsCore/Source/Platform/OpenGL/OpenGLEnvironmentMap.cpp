@@ -11,29 +11,28 @@
 
 namespace Cgr
 {
-
 	namespace Utils
 	{
-		static GLenum CubeMapSideEnumToGL(CubeMapSide side)
+		static GLenum SkyboxSideEnumToGL(SkyboxSide side)
 		{
 			switch (side)
 			{
-			case Cgr::CubeMapSide::NegativeX:
+			case Cgr::SkyboxSide::NegativeX:
 				return GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
 				break;
-			case Cgr::CubeMapSide::NegativeY:
+			case Cgr::SkyboxSide::NegativeY:
 				return GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
 				break;
-			case Cgr::CubeMapSide::NegativeZ:
+			case Cgr::SkyboxSide::NegativeZ:
 				return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
 				break;
-			case Cgr::CubeMapSide::PositiveX:
+			case Cgr::SkyboxSide::PositiveX:
 				return GL_TEXTURE_CUBE_MAP_POSITIVE_X;
 				break;
-			case Cgr::CubeMapSide::PositiveY:
+			case Cgr::SkyboxSide::PositiveY:
 				return GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
 				break;
-			case Cgr::CubeMapSide::PositiveZ:
+			case Cgr::SkyboxSide::PositiveZ:
 				return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
 				break;
 			default:
@@ -42,56 +41,79 @@ namespace Cgr
 			}
 		}
 
-		static void LoadCubeMapTextures()
+		static GLenum ToOpenGLTexInternalFormat(ImageFormat format)
 		{
-			const char* path[] = {
-				"Content/Texture/CubeMap/MilkyWay/px.png",
-				"Content/Texture/CubeMap/MilkyWay/nx.png",
-				"Content/Texture/CubeMap/MilkyWay/py.png",
-				"Content/Texture/CubeMap/MilkyWay/ny.png",
-				"Content/Texture/CubeMap/MilkyWay/pz.png",
-				"Content/Texture/CubeMap/MilkyWay/nz.png"
-			};
-
-			for (int i = 0; i < 6; i++)
+			switch (format)
 			{
-				int width, height, channels;
-				stbi_uc* data = nullptr;
-
-				stbi_set_flip_vertically_on_load(1);
-				{
-					data = stbi_load(path[i], &width, &height, &channels, 0);
-				}
-				if (!data)
-				{
-					data = stbi_load("asset/texture/UVChecker.png", &width, &height, &channels, 0);
-					CGR_CORE_ASSERT(data, "Failed to load image!");
-				}
-
-				GLenum internalFormat = 0, dataFormat = 0;
-				if (channels == 4)
-				{
-					internalFormat = GL_RGBA8;
-					dataFormat = GL_RGBA;
-				}
-				else if (channels == 3)
-				{
-					internalFormat = GL_RGB8;
-					dataFormat = GL_RGB;
-				}
-
-				CGR_CORE_ASSERT(internalFormat & dataFormat, "Image format not supported!");
-
-				GLenum side = CubeMapSideEnumToGL(static_cast<CubeMapSide>(i));
-				glTexImage2D(side, 0, internalFormat, width, height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
-
-				stbi_image_free(data);
+			case Cgr::ImageFormat::None:
+				CGR_CORE_ERROR("Invalid format");
+				break;
+			case Cgr::ImageFormat::R8:
+				CGR_CORE_ASSERT(false, "Not implemented yet")
+					break;
+			case Cgr::ImageFormat::RGB8:
+				return GL_RGB8;
+				break;
+			case Cgr::ImageFormat::RGBA8:
+				return GL_RGBA8;
+				break;
+			case Cgr::ImageFormat::RGBA16F:
+				return GL_RGBA16F;
+				break;
+			case Cgr::ImageFormat::RGBA32F:
+				return GL_RGBA32F;
+				break;
+			default:
+				CGR_CORE_ERROR("Invalid format");
+				return GL_NONE;
+				break;
 			}
+
+			return GL_NONE;
+		}
+
+		static GLenum ToOpenGLTexDataFormat(ImageFormat format)
+		{
+			switch (format)
+			{
+			case Cgr::ImageFormat::None:
+				CGR_CORE_ERROR("Invalid format");
+				break;
+			case Cgr::ImageFormat::R8:
+				CGR_CORE_ASSERT(false, "Not implemented yet")
+					break;
+			case Cgr::ImageFormat::RGB8:
+				return GL_RGB;
+				break;
+			case Cgr::ImageFormat::RGBA8:
+				return GL_RGBA;
+				break;
+			case Cgr::ImageFormat::RGBA16F:
+				return GL_RGBA;
+				break;
+			case Cgr::ImageFormat::RGBA32F:
+				return GL_RGBA;
+				break;
+			default:
+				CGR_CORE_ERROR("Invalid format");
+				return GL_NONE;
+				break;
+			}
+
+			return GL_NONE;
 		}
 	}
 
-	OpenGLCubeMap::OpenGLCubeMap()
+	OpenGLSkybox::OpenGLSkybox()
 	{
+		REFLECT();
+
+		ATTRIBUTE("Skybox Rotation", m_Rotation);
+		ATTRIBUTE("Skybox Intensity", m_Intensity);
+		ATTRIBUTE("Redness", m_Red);
+
+
+
 		float triangleVertices[] = {
 			-1.0f, -1.0f,   // Bottom-left
 			 3.0f, -1.0f,   // Bottom-right (over-extended)
@@ -114,44 +136,55 @@ namespace Cgr
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-		Utils::LoadCubeMapTextures();
-
-		// Use AssetManager to import env map material
-		auto assetManager = Application::Get().GetAssetManager();
-		auto handle = assetManager->ImportAsset("Content/Shader/CubeMap.glsl");
-		m_Shader = assetManager->GetAsset<Shader>(handle);
-		//m_ENVMapMaterial = Material::Create(shader);
 	}
 
-	OpenGLCubeMap::~OpenGLCubeMap()
+	OpenGLSkybox::~OpenGLSkybox()
 	{
 		glDeleteTextures(1, &m_RendererID);
 	}
 
-	void OpenGLCubeMap::Bind()
+	void OpenGLSkybox::Bind()
 	{
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
 	}
 
-	void OpenGLCubeMap::UnBind()
+	void OpenGLSkybox::UnBind()
 	{
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 	}
 
-	void OpenGLCubeMap::Render(Camera& camera)
+	void OpenGLSkybox::SetTexture(SkyboxSide side, TextureSpecification spec, const void* data)
 	{
+		GLenum internalFormat = Utils::ToOpenGLTexInternalFormat(spec.Format);
+		GLenum dataFormat = Utils::ToOpenGLTexDataFormat(spec.Format);
+		GLenum target = Utils::SkyboxSideEnumToGL(side);
+		glTexImage2D(target, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
+	}
+
+	void OpenGLSkybox::SetShader(Ref<Shader> shader)
+	{
+		m_Shader = shader;
+	}
+
+	void OpenGLSkybox::Render(Camera& camera)
+	{
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
 		m_ENVMapVertexArray->Bind();
 		m_ENVMapVertexBuffer->Bind();
-		//auto shader = m_ENVMapMaterial->GetShader();
 		m_Shader->Bind();
-		float rotation = -90.0f;
-		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(rotation), glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(m_Rotation), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 inverseVP = glm::inverse(camera.GetViewProjectionMatrix() * rotationMatrix);
 		m_Shader->SetMat4f("uInverseVP", inverseVP);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
 		m_Shader->Set1i("uSkybox", m_RendererID);
+		m_Shader->Set1f("uIntensity", m_Intensity);
+		m_Shader->Set1f("uRed", m_Red);
 
 		glDrawArrays(GL_TRIANGLES, 0, 3);
+	}
+
+	void OpenGLSkybox::OnAttributeChange()
+	{
+		
 	}
 }
