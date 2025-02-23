@@ -5,8 +5,6 @@
 
 namespace Cgr
 {
-	static uint32_t s_VertexAttribIndex = 0;
-
 	static int GetElementCount(ShaderDataType type)
 	{
 		switch (type)
@@ -68,10 +66,9 @@ namespace Cgr
 		int Offset = 0;
 
 		BufferElement(ShaderDataType type, const std::string& name, bool isNormalized = false)
-			: AttribIndex(s_VertexAttribIndex), Name(name), Count(GetElementCount(type)),
+			: AttribIndex(0), Name(name), Count(GetElementCount(type)),
 			  Type(type), IsNormalized(isNormalized)
 		{
-			s_VertexAttribIndex++;
 		}
 	};
 
@@ -82,6 +79,13 @@ namespace Cgr
 		BufferLayout(const std::initializer_list<BufferElement>& elements)
 			: m_Elements(elements), m_Stride(0)
 		{
+			uint32_t attribIndex = 0;
+
+			for (auto& e : m_Elements)
+			{
+				e.AttribIndex = attribIndex++;
+			}
+
 			CalculateStrideAndOffset();
 		}
 
@@ -110,6 +114,7 @@ namespace Cgr
 		std::vector<BufferElement> m_Elements;
 		int m_Stride = 0;
 	};
+
 	class CGR_API IndexBuffer
 	{
 	public:
