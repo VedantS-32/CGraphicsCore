@@ -31,5 +31,5 @@ make CC= C_Compiler CXX= C++_Compiler config=BuildConfig -j Cores
 ```
 - Example
 ``` shell
-    make CC=gcc CXX=g++ config=release -j 4
+make CC=gcc CXX=g++ config=release -j 4
 ```
