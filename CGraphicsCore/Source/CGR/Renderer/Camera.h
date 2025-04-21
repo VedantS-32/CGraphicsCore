@@ -64,12 +64,12 @@ namespace Cgr
 		glm::mat4 m_ViewMatrix{ 1.0f };
 		glm::mat4 m_ViewProjectionMatrix{ 1.0f };
 
-		glm::vec3 m_Position{ 0.0f, -10.0f, 5.0f };
-		glm::vec3 m_Orientation{ 0.0f, 1.0f, -0.5f };
+		glm::vec3 m_Position{ 0.0f, -10.0f, -1.0f };
+		glm::vec3 m_Orientation{ 0.0f, 1.0f, 0.25f };
 		glm::vec3 m_UpDirection{ 0.0f, 0.0f, 1.0f };
 
 		float m_PerspectiveFov = 45.0f;
-		double m_PerspectiveNear = 0.1f, m_PerspectiveFar = 10000.0f;
+		double m_PerspectiveNear = 0.1f, m_PerspectiveFar = 100000.0f;
 
 		double m_OrthographicSize = 10.0f;
 		double m_OrthographicNear = -1000.0f, m_OrthographicFar = 1000.0f;

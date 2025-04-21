@@ -142,7 +142,7 @@ void main()
 
 	// Diffuse lighting with toon quantization
 	float diffuse = max(dot(normal, lightDir), 0.0);
-	float toonDiffuse = floor(diffuse * 5.0) / 5.0; // Quantize into 4 levels
+	float toonDiffuse = floor(diffuse * 10.0) / 10.0; // Quantize into 4 levels
 
 	// Specular lighting with toon quantization
 	vec3 halfVector = normalize(lightDir + viewDir);

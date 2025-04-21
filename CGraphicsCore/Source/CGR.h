@@ -31,3 +31,5 @@
 #include "CGR/Asset/Serializer/MaterialSerializer.h"
 #include "CGR/Asset/Serializer/ModelSerializer.h"
 #include "CGR/Scene/Serializer/SceneSerializer.h"
+
+#include "CGR/Script/ScriptEngine.h"

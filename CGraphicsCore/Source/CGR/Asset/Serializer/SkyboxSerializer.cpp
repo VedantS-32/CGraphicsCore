@@ -133,7 +133,7 @@ namespace Cgr
                 spec.Format = ImageFormat::RGB8;
             }
             
-            CGR_CORE_ASSERT(internalFormat & dataFormat, "Image format not supported!");
+            CGR_CORE_ASSERT(spec.Format != ImageFormat::None, "Image format not supported!");
             m_Skybox->SetTexture(static_cast<SkyboxSide>(i++), spec, data);
             stbi_image_free(data);
         }

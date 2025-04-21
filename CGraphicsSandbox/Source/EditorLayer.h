@@ -25,6 +25,9 @@ namespace Cgr
 		bool OnKeyPressed(KeyPressedEvent& e);
 		bool OnMouseButtonPressed(MouseButtonPressedEvent& e);
 
+		void OnReloadButtonClicked();
+		void OnCallHaxeFuncButtonClicked();
+
 		void NewScene();
 		void OpenScene();
 		void OpenScene(const std::filesystem::path& path);
@@ -37,6 +40,7 @@ namespace Cgr
 		AssetManager* m_AssetManager;
 		Renderer* m_Renderer;
 		Reflection* m_ReflectionSystem;
+		ScriptEngine* m_ScriptEngine;
 
 		Ref<Scene> m_ActiveScene;
 		Entity m_HoveredEntity;

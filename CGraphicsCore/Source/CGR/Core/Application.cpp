@@ -6,6 +6,7 @@
 #include "CGR/Core/Layer.h"
 #include "CGR/Core/LayerStack.h"
 #include "CGR/Renderer/RenderCommand.h"
+#include "CGR/Script/ScriptEngine.h"
 #include "Window.h"
 
 #include <GLFW/glfw3.h>
@@ -37,6 +38,9 @@ namespace Cgr
         m_AssetManager->LoadDefaultAssets();
         m_Renderer->Init();
         PushOverlay(m_ImGuiLayer);
+
+        m_ScriptEngine = new ScriptEngine;
+        m_ScriptEngine->Init();
     }
 
     Application::~Application()
@@ -45,6 +49,7 @@ namespace Cgr
         delete m_ImGuiLayer;
         delete m_AssetManager;
         delete m_Renderer;
+        delete m_ScriptEngine;
     }
 
     void Application::PushLayer(Layer* layer)

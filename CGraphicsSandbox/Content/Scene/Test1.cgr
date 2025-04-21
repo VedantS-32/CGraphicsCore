@@ -1,0 +1,29 @@
+Scene: Untitled
+Entities:
+  - Entity: 2
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ModelComponent:
+      Model: Content\Generated\Local\Keqing.csmesh
+  - Entity: 1
+    TagComponent:
+      Tag: SecondEntity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ModelComponent:
+      Model: Content/Model/Pot.fbx
+  - Entity: 0
+    TagComponent:
+      Tag: FirstEntity
+    TransformComponent:
+      Translation: [-2.3343263, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ModelComponent:
+      Model: Content\Model\CStellCube.fbx

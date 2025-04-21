@@ -26,16 +26,18 @@
 
 
 #ifdef CGR_DEBUG
-#define CGR_ENABLE_ASSERTS
+	#define CGR_ENABLE_ASSERTS
 #if defined(CGR_PLATFORM_WINDOWS)
-#define CGR_DEBUGBREAK() __debugbreak()
+	#define CGR_DEBUGBREAK() __debugbreak()
 #endif
+#else
+	#define CGR_DEBUGBREAK()
 #endif
 
 #define CGR_EXPAND_MACRO(x) x
 #define CGR_STRINGIFY_MACRO(x) #x
 
-#ifdef  CGR_ENABLE_ASSERTS
+#ifdef CGR_ENABLE_ASSERTS
 
 // Alteratively we could use the same "default" message for both "WITH_MSG" and "NO_MSG" and
 // provide support for custom formatting by concatenating the formatting string instead of having the format inside the default message
@@ -61,6 +63,14 @@
 
 namespace Cgr
 {
+	struct RendererID
+	{
+		uint32_t ID;
+		explicit RendererID(uint32_t id = 0) : ID(id) {}
+		operator uint32_t() const { return ID; }
+	};
+
+
 	template<typename T>
 	using Scope = std::unique_ptr<T>;
 	template<typename T, typename ... Args>

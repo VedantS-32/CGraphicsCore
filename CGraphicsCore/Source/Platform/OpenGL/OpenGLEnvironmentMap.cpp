@@ -106,13 +106,15 @@ namespace Cgr
 
 	OpenGLSkybox::OpenGLSkybox()
 	{
+
+		ATTRIBUTE(Skybox Rotation, m_Rotation);
+		ATTRIBUTE(Skybox Intensity, m_Intensity);
+		ATTRIBUTE(Redness, m_Red);
+		ATTRIBUTE(Skybox, m_RendererID);
+
 		REFLECT();
 
-		ATTRIBUTE("Skybox Rotation", m_Rotation);
-		ATTRIBUTE("Skybox Intensity", m_Intensity);
-		ATTRIBUTE("Redness", m_Red);
-
-		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererID);
+		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererID.ID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -123,7 +125,7 @@ namespace Cgr
 
 	OpenGLSkybox::~OpenGLSkybox()
 	{
-		glDeleteTextures(1, &m_RendererID);
+		glDeleteTextures(1, &m_RendererID.ID);
 	}
 
 	void OpenGLSkybox::Bind()

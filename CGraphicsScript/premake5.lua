@@ -1,13 +1,11 @@
-project "CGraphicsSandbox"
-	location "%{wks.location}/CGraphicsSandbox"
-	dependson { "CGraphicsCore" }
-	kind "ConsoleApp"
+project "CGraphicsScript"
+	location "%{wks.location}/CGraphicsScript"
+	kind "SharedLib"
+	targetextension ".hdll"
 	language "C++"
 	cppdialect "C++20"
-	staticruntime "Off"
+	staticruntime "off"
 	flags { "MultiProcessorCompile" }
-
-	dependson "CGraphicsScript"
 
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
@@ -16,36 +14,35 @@ project "CGraphicsSandbox"
 		"CGR_DYNAMIC_LINK"
 	}
 
-	files {
-        "Source/**.h",
-        "Source/**.cpp"
-	}
-
 	includedirs {
 		"Source",
 		"%{wks.location}/CGraphicsCore/Source",
-        "%{IncludeDir.spdlog}",
-		"%{IncludeDir.glm}",
-		"%{IncludeDir.imgui}",
-		"%{IncludeDir.ImGuizmo}",
-		"%{IncludeDir.entt}",
+		"%{IncludeDir.spdlog}",
 		"%{IncludeDir.hashlink}"
 	}
 
+	files {
+        "Source/**.h",
+        "Source/**.cpp",
+		"Source/**.hx"
+	}
+
 	links {
-		"ImGuizmo",
-		"imgui",
-		"CGraphicsCore"
+		"CGraphicsCore",
+		"libhl"
 	}
 
 	filter "action:vs*"
-	postbuildcommands {
-		("{COPY} %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/* ./")
-	}
-
+		buildoptions { "/utf-8" }
+		postbuildcommands {
+			("{MKDIR} %{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox"),
+			("{COPY} %{cfg.buildtarget.relpath} %{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox")
+		}
+	
 	filter "action:not vs*"
 		postbuildcommands {
-			("cp -f %{wks.location}/bin/" .. outputdir .. "/%{prj.name}/* ./")
+			("mkdir -p \"%{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox\"|| exit 0"),
+			("cp -f %{cfg.buildtarget.relpath} %{wks.location}/bin/" .. outputdir .. "/CGraphicsSandbox")
 		}
 
 	filter "action:vs*"

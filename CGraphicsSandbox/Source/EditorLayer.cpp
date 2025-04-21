@@ -20,7 +20,7 @@ namespace Cgr
         m_ActiveScene = CreateRef<Scene>();
         auto entity = m_ActiveScene->CreateEntity("FirstEntity");
 
-        auto handle = m_AssetManager->ImportAsset("Content/Model/Cube.csmesh");
+        auto handle = m_AssetManager->ImportAsset("Content/Model/CStellCube.csmesh");
         auto& model = entity.AddComponent<ModelComponent>();
         model.SetModel(m_AssetManager->GetAsset<Model>(handle));
 
@@ -51,6 +51,9 @@ namespace Cgr
         m_ContentBrowserPanel = new ContentBrowserPanel;
         m_SceneGraphPanel = new SceneGraphPanel(m_ActiveScene, m_ContentBrowserPanel);
         m_Camera.SetPerspective(60.0f);
+
+        m_ScriptEngine = Application::Get().GetScriptEngine();
+        m_ScriptEngine->LoadScript("Content/Script/build/hwl.hl");
         //m_Camera.SetOrthographic(10.0f);
     }
 
@@ -269,6 +272,14 @@ namespace Cgr
         }
 
         ImGui::Begin("World Settings");
+        if (ImGui::Button("Reload Script!"))
+        {
+            OnReloadButtonClicked();
+        }
+        if (ImGui::Button("Call Haxe Function!"))
+        {
+            OnCallHaxeFuncButtonClicked();
+        }
         auto& pos = m_Camera.GetPosition();
         auto txt = std::format("Camera position x:{}, y:{}, z:{}", pos.x, pos.y, pos.z);
         ImGui::Text(txt.c_str());
@@ -281,6 +292,7 @@ namespace Cgr
         
         m_ReflectionSystem->ReflectClass("OpenGLSkybox");
         m_ReflectionSystem->ReflectClass("Camera");
+        m_ReflectionSystem->ReflectClass("OpenGLTexture");
         //m_Camera.UpdateProjectionMatrix();
 
         ImGui::End();
@@ -377,6 +389,16 @@ namespace Cgr
         }
 
         return false;
+    }
+
+    void EditorLayer::OnReloadButtonClicked()
+    {
+        m_ScriptEngine->LoadScript("Content/Script/build/hwl.hl");
+    }
+
+    void EditorLayer::OnCallHaxeFuncButtonClicked()
+    {
+        m_ScriptEngine->CallVoidFunction("hwlHaxe");
     }
 
     void EditorLayer::NewScene()

@@ -70,7 +70,6 @@ namespace Cgr
 		RenderCommand::EnableDepthMask(false);
 		m_ENVMapVertexArray->Bind();
 		m_ENVMapVertexBuffer->Bind();
-		m_ENVMapVertexArray->SetBufferLayout(m_ENVLayout);
 		m_Skybox->Render(camera);
 		RenderCommand::EnableDepthMask(true);
 	}

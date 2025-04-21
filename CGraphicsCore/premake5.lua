@@ -9,6 +9,10 @@ project "CGraphicsCore"
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
 
+	defines {
+		"CGR_ENABLE_ASSERTS"
+	}
+	
 	files {
 		"Source/**.h",
 		"Source/**.cpp",
@@ -23,6 +27,17 @@ project "CGraphicsCore"
 		"Vendor/stb_image/**.h",
 		"Vendor/stb_image/**.cpp",
 		"Vendor/entt/include/entt.hpp"
+
+		-- "Vendor/hashlink/src/hl.h",
+		-- "Vendor/hashlink/src/hlmodule.h",
+        -- "Vendor/hashlink/src/opcodes.h",
+        -- "Vendor/hashlink/src/module.c",
+        -- "Vendor/hashlink/src/jit.c",
+        -- "Vendor/hashlink/src/code.c",
+        -- "Vendor/hashlink/src/profile.c",
+        -- "Vendor/hashlink/src/debugger.c"
+		--"Vendor/hashlink/src/hlmodule.h",
+		--"Vendor/hashlink/src/module.c",
 	}
 
 	includedirs {
@@ -36,7 +51,8 @@ project "CGraphicsCore"
 		"%{IncludeDir.stb_image}",
 		"%{IncludeDir.assimp}",
 		"%{IncludeDir.yaml_cpp}",
-		"%{IncludeDir.entt}"
+		"%{IncludeDir.entt}",
+		"%{IncludeDir.hashlink}"
 	}
 
 	links {
@@ -44,7 +60,8 @@ project "CGraphicsCore"
 		"imgui",
 		"ImGuizmo",
 		"assimp",
-		"yaml-cpp"
+		"yaml-cpp",
+		"libhl"
 	}
 
 	filter "action:vs*"
@@ -66,6 +83,9 @@ project "CGraphicsCore"
 		flags { "NoPCH" }
 
 	filter "files:Vendor/glad/src/glad.c"
+		flags { "NoPCH" }
+
+	filter "files:Vendor/hashlink/src/**.c"
 		flags { "NoPCH" }
 
 	filter "system:windows"

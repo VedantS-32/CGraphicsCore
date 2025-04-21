@@ -1,0 +1,5 @@
+-cp src
+-hl build/hwl.hl
+--class-path src
+--macro include('cgr')
+--macro include('hwl')

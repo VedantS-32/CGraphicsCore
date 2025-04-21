@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "CGR/Core/Application.h"
 #include "CGR/Core/Log.h"
 
 #ifdef CGR_PLATFORM_WINDOWS

@@ -1,5 +1,5 @@
 Asset: 11290856562443385101
 Model: Cube
-Source: Content/Model/Cube.obj
+Source: Content/Model/CStellCube.fbx
 Materials:
   0: Content\Material\CStell.csmat

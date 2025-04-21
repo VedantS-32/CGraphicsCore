@@ -19,3 +19,6 @@
 [submodule "CGraphicsCore/Vendor/ImGuizmo"]
 	path = CGraphicsCore/Vendor/ImGuizmo
 	url = https://github.com/VedantS-32/ImGuizmo.git
+[submodule "CGraphicsCore/Vendor/hashlink"]
+	path = CGraphicsCore/Vendor/hashlink
+	url = https://github.com/VedantS-32/hashlink.git

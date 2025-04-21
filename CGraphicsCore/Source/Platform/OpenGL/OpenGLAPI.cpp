@@ -8,7 +8,7 @@ namespace Cgr
 {
 	API RendererAPI::m_API = API::OpenGL;
 
-#ifndef CGR_DEBUG
+#ifdef CGR_DEBUG
 
 	static void GLAPIENTRY
 		MessageCallback(GLenum source,

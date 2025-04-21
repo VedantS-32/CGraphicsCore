@@ -12,6 +12,7 @@ namespace Cgr
 {
 	class WindowClosedEvent;
 	class Renderer;
+	class ScriptEngine;
 
 	class CGR_API Application
 	{
@@ -31,6 +32,7 @@ namespace Cgr
 		ImGuiLayer* GetUILayer() { return m_ImGuiLayer; }
 		AssetManager* GetAssetManager() { return m_AssetManager; }
 		Renderer* GetRenderer() { return m_Renderer; }
+		ScriptEngine* GetScriptEngine() { return m_ScriptEngine; }
 
 		static Application& Get();
 		void OnWindowClose(WindowClosedEvent& e);
@@ -48,6 +50,8 @@ namespace Cgr
 
 		ImGuiLayer* m_ImGuiLayer;
 		Renderer* m_Renderer;
+
+		ScriptEngine* m_ScriptEngine;
 
 		LayerStack m_LayerStack;
 		EventManager m_EventManager;

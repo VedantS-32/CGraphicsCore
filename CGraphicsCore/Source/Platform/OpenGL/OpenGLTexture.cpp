@@ -77,7 +77,7 @@ namespace Cgr
 		m_InternalFormat = GL_RGBA8;
 		m_DataFormat = GL_RGBA;
 
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID.ID);
 		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Width, m_Height);
 
 		glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -90,10 +90,14 @@ namespace Cgr
 	OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification& spec, const void* data)
 		: m_Width(spec.Width), m_Height(spec.Height)
 	{
+		ATTRIBUTE(Image, m_RendererID);
+
+		REFLECT();
+
 		m_InternalFormat = Utils::ToOpenGLTexInternalFormat(spec.Format);
 		m_DataFormat = Utils::ToOpenGLTexDataFormat(spec.Format);
 
-		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID);
+		glCreateTextures(GL_TEXTURE_2D, 1, &m_RendererID.ID);
 		glBindTexture(GL_TEXTURE_2D, m_RendererID);
 		glTextureStorage2D(m_RendererID, 1, m_InternalFormat, m_Width, m_Height);
 
@@ -107,7 +111,7 @@ namespace Cgr
 
 	OpenGLTexture2D::~OpenGLTexture2D()
 	{
-		glDeleteTextures(1, &m_RendererID);
+		glDeleteTextures(1, &m_RendererID.ID);
 	}
 
 	void OpenGLTexture2D::SetData(void* data, uint32_t size)
@@ -131,5 +135,10 @@ namespace Cgr
 	void OpenGLTexture2D::Unbind() const
 	{
 		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+
+	void OpenGLTexture2D::OnAttributeChange()
+	{
+
 	}
 }

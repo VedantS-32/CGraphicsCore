@@ -17,7 +17,7 @@ namespace Cgr
 	{
 		REFLECT();
 
-		ATTRIBUTE("Field of View", m_PerspectiveFov);
+		ATTRIBUTE("FieldOV", m_PerspectiveFov);
 	}
 
 	void Camera::OnUpdate(Timestep ts)

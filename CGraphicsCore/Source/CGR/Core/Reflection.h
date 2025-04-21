@@ -3,6 +3,7 @@
 #include <unordered_map>
 #include <any>
 #include <functional>
+#include <iostream>
 
 #ifndef _MSC_VER
 	#include <cxxabi.h>
@@ -13,7 +14,7 @@ namespace Cgr
 {
 	enum class CGR_API VariableType
 	{
-		None = 0, Float, Float2, Float3, Float4, Double, Mat3, Mat4, Int, Int2, Int3, Int4, Bool, Char, String, CharPtr, ConstCharPtr
+		None = 0, Float, Float2, Float3, Float4, Double, Mat3, Mat4, Int, Int2, Int3, Int4, UInt, Bool, Char, String, CharPtr, ConstCharPtr, RendererID
 	};
 
 	struct CGR_API Attribute
@@ -36,7 +37,10 @@ namespace Cgr
 
 		void AddAttribute(const std::string& className, Attributes* attributeMap)
 		{
-			m_AttributeClassMap[className] = attributeMap;
+			if(!m_AttributeClassMap.contains(className))
+				m_AttributeClassMap[className] = attributeMap;
+			else
+				m_AttributeClassMap[className]->insert(m_AttributeClassMap[className]->end(), attributeMap->begin(), attributeMap->end());
 		}
 
 		void AddClassUpdateFunction(const std::string& className, std::function<void()> updateFunction)
@@ -78,6 +82,8 @@ namespace Cgr
 
 			if (typeName == "float") return VariableType::Float;
 			if (typeName == "int") return VariableType::Int;
+			if (typeName == "unsigned int") return VariableType::UInt;
+			if (typeName == "struct Cgr::RendererID") return VariableType::RendererID;
 			if (typeName == "bool") return VariableType::Bool;
 			if (typeName == "std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >")
 				return VariableType::String;
@@ -92,7 +98,9 @@ namespace Cgr
 			if (typeName == "glm::ivec4") return VariableType::Int4;
 			if (typeName == "char") return VariableType::Char;
 			if (typeName == "char*") return VariableType::CharPtr;
-			if (typeName == "char const*") return VariableType::CharPtr;
+			if (typeName == "char const*") return VariableType::ConstCharPtr;
+
+			std::cout << typeName << std::endl;
 
 			return VariableType::None;  // Unknown type
 		}

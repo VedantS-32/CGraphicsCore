@@ -1,6 +1,8 @@
 #pragma once
 
 #include "CGR/Renderer/Texture.h"
+#include "CGR/Core/Reflection.h"
+
 #include <glad/glad.h>
 
 namespace Cgr
@@ -8,6 +10,7 @@ namespace Cgr
 	class OpenGLTexture2D : public Texture2D
 	{
 	public:
+		CLASS(OpenGLTexture);
 		OpenGLTexture2D(const TextureSpecification& spec, const void* data);
 		OpenGLTexture2D(uint32_t width, uint32_t height);
 		virtual ~OpenGLTexture2D();
@@ -34,7 +37,7 @@ namespace Cgr
 		std::string m_Path;
 		std::string m_Name;
 		uint32_t m_Width, m_Height;
-		uint32_t m_RendererID;
+		RendererID m_RendererID;
 		GLenum m_InternalFormat, m_DataFormat;
 	};
 }

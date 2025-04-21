@@ -34,11 +34,11 @@ namespace Cgr
 		std::vector<Ref<ShaderVariable>> m_ShaderVariables;
 		std::vector<std::string> m_TexturePaths;
 
-		float m_Rotation = 90.0f;
+		float m_Rotation = 200.0f;
 		float m_Intensity = 1.0f;
 		float m_Red = 1.0f;
 
 	private:
-		uint32_t m_RendererID;
+		RendererID m_RendererID;
 	};
 }
