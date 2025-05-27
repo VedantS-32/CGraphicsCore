@@ -11,6 +11,7 @@
 namespace Cgr
 {
 	class WindowClosedEvent;
+	class WindowMovedEvent;
 	class Renderer;
 	class ScriptEngine;
 

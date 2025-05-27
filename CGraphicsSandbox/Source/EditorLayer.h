@@ -33,8 +33,14 @@ namespace Cgr
 		void OpenScene(const std::filesystem::path& path);
 		void SaveSceneAs();
 
+		void StartRuntime();
+		void StopRuntime();
+
+		void ShowTitleBar();
+
 	private:
 		Ref<Framebuffer> m_Framebuffer;
+		Ref<Texture2D> m_Logo;
 		Camera m_Camera;
 
 		AssetManager* m_AssetManager;
@@ -55,6 +61,8 @@ namespace Cgr
 
 		int m_PreviousEntity = -1;
 		int m_CurrentEntity = -1;
+
+		bool m_IsRuntime = false;
 
 		// Panels
 		ContentBrowserPanel* m_ContentBrowserPanel;

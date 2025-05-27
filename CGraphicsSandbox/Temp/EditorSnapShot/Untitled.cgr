@@ -1,0 +1,20 @@
+Scene: Untitled
+Entities:
+  - Entity: 1
+    TagComponent:
+      Tag: SecondEntity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ModelComponent:
+      Model: Content/Model/Pot.fbx
+  - Entity: 0
+    TagComponent:
+      Tag: FirstEntity
+    TransformComponent:
+      Translation: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    ModelComponent:
+      Model: Content/Model/CStellCube.csmesh

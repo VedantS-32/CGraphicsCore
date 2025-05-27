@@ -1,5 +1,7 @@
 #include "CGRpch.h"
 
+#include <filesystem>
+
 #ifdef CGR_PLATFORM_WINDOWS
 
 	#include "CGR/Utils/PlatformUtils.h"
@@ -25,7 +27,14 @@
 			ofn.nFilterIndex = 1;
 			ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
 			if (GetOpenFileNameA(&ofn) == TRUE)
-				return ofn.lpstrFile;
+			{
+				// Convert absolute path to relative
+				std::filesystem::path absolutePath = szFile;
+				std::filesystem::path basePath = std::filesystem::current_path();
+
+				std::filesystem::path relativePath = std::filesystem::relative(absolutePath, basePath);
+				return relativePath.string();
+			}
 
 			return std::string();
 		}

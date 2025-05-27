@@ -22,6 +22,8 @@ namespace Cgr
 		Scene();
 		Scene(const std::string& name);
 
+		void Initialize();
+
 		Entity CreateEntity(const std::string& name = std::string());
 		void DestroyEntity(Entity entity);
 		
@@ -33,6 +35,9 @@ namespace Cgr
 		void OnViewportResize(float width, float height);
 		const EntityRegistry& GetRegistry() { return m_Registry; }
 
+		void StartRuntime();
+		void StopRuntime();
+
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
@@ -43,6 +48,7 @@ namespace Cgr
 		std::string m_Name;
 		std::filesystem::path m_Path;
 		Renderer* m_Renderer;
+		ScriptEngine* m_ScriptEngine;
 		EntityRegistry m_Registry;
 	};
 }

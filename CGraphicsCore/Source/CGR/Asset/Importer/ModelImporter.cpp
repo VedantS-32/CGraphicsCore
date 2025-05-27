@@ -4,6 +4,7 @@
 #include "CGR/Core/Application.h"
 #include "CGR/Asset/AssetManager.h"
 #include "CGR/Asset/Serializer/ModelSerializer.h"
+#include "CGR/Renderer/Renderer.h"
 
 #define ASSIMP_DLL
 #include <assimp/Importer.hpp>

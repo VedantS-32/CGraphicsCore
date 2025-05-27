@@ -43,6 +43,9 @@ namespace Cgr
 		EVENT_CLASS_TYPE(WindowMoved);
 		EVENT_CLASS_CATEGORY(EventCategoryApplication);
 
+		int GetXPos() const { return XPos; }
+		int GetYPos() const { return YPos; }
+
 	private:
 		int XPos, YPos;
 	};

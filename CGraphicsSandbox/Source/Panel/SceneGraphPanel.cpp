@@ -1,5 +1,7 @@
 #include "SceneGraphPanel.h"
 
+#include "AddScriptPanel.h"
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <glm/gtc/type_ptr.hpp>
@@ -34,10 +36,14 @@ namespace Cgr
 			m_SelectionContext = {};
 
 		if (ImGui::BeginPopupContextWindow(0, 1 | ImGuiPopupFlags_NoOpenOverItems))
-		{
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0, 32 });
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 8, 8 });
+
 			if (ImGui::MenuItem("Create Empty Entity"))
 				m_Context->CreateEntity("Empty Entity");
 
+            ImGui::PopStyleVar(2);
 			ImGui::EndPopup();
 		}
 
@@ -218,6 +224,11 @@ namespace Cgr
 		}
 
 		ImGui::SameLine();
+        ImGui::PushItemWidth(-1);
+        if (ImGui::Button("||"))
+            AddScriptPanel::OpenAddScriptPanel();
+
+        ImGui::SameLine();
 		ImGui::PushItemWidth(-1);
 
 		if (ImGui::Button("Add Component"))
@@ -234,10 +245,26 @@ namespace Cgr
 			ImGui::EndPopup();
 		}
 
+		std::string scriptPath;
+        if (AddScriptPanel::OnImGuiRender(scriptPath))
+        {
+            auto& script = m_SelectionContext.AddComponent<ScriptComponent>();
+			script.ScriptPath = scriptPath;
+			script.ClassName = std::filesystem::path(scriptPath).stem().string();
+        }
+
+		ImGui::PopItemWidth();
 		ImGui::PopItemWidth();
 
         ImGui::Spacing();
         ImGui::Spacing();
+
+        DrawComponent<ScriptComponent>("Script", entity, [&](auto& component)
+            {
+				ImGui::Text("Class: %s", component.ClassName.c_str());
+				ImGui::Text("Script Path: %s", component.ScriptPath.c_str());
+            });
+
 		DrawComponent<TransformComponent>("Transform", entity, [&](auto& component)
 			{
 				DrawVec3Control("Translation", component.Translation);
@@ -257,7 +284,7 @@ namespace Cgr
                 ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
                 ImGui::Text("Model");
                 const auto& iconMap = m_ContentBrowserPanel->GetIconMap();
-                ImGui::ImageButton(name.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Model")->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
+                ImGui::ImageButton(name.c_str(), static_cast<uintptr_t>(iconMap.at("Model")->GetRendererID()), { 98, 98 }, { 0, 1 }, { 1, 0 });
                 ImGui::PopStyleColor();
 
 
@@ -302,7 +329,7 @@ namespace Cgr
 
                         auto& matName = material->Name;
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                        ImGui::ImageButton(matName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Material")->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
+                        ImGui::ImageButton(matName.c_str(), static_cast<uintptr_t>(iconMap.at("Material")->GetRendererID()), { 98, 98 }, { 0, 1 }, { 1, 0 });
                         ImGui::PopStyleColor();
 
                         if (ImGui::BeginDragDropTarget())
@@ -334,7 +361,7 @@ namespace Cgr
                         auto& shaderName = material->GetShader()->Name;
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
                         ImGui::Text("Shader");
-                        ImGui::ImageButton(shaderName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(iconMap.at("Shader")->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
+                        ImGui::ImageButton(shaderName.c_str(), static_cast<uintptr_t>(iconMap.at("Shader")->GetRendererID()), { 98, 98 }, { 0, 1 }, { 1, 0 });
                         ImGui::PopStyleColor();
 
                         if (ImGui::BeginDragDropTarget())
@@ -375,7 +402,7 @@ namespace Cgr
                             auto& texture = *it;
                             auto& texName = texture->GetName();
                             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
-                            ImGui::ImageButton(texName.c_str(), reinterpret_cast<void*>(static_cast<uintptr_t>(texture->GetRendererID())), { 98, 98 }, { 0, 1 }, { 1, 0 });
+                            ImGui::ImageButton(texName.c_str(), static_cast<uintptr_t>(texture->GetRendererID()), { 98, 98 }, { 0, 1 }, { 1, 0 });
                             ImGui::PopStyleColor();
 
                             if (ImGui::BeginDragDropTarget())

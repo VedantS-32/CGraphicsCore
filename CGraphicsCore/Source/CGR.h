@@ -5,6 +5,7 @@
 #include "CGR/Asset/Asset.h"
 #include "CGR/Core/Log.h"
 #include "CGR/Core/Application.h"
+#include "CGR/Asset/AssetManager.h"
 #include "CGR/Core/Layer.h"
 #include "CGR/Core/Input.h"
 #include "CGR/Event/Event.h"

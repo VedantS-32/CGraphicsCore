@@ -1,5 +1,12 @@
--cp src
--hl build/hwl.hl
---class-path src
+-hl build/CGraphicsScript.hl
+
+--class-path minimal
+--macro include('cgrMinimal')
+
+--class-path bridge
 --macro include('cgr')
---macro include('hwl')
+
+--class-path src
+--macro include('entity')
+
+# -D dump

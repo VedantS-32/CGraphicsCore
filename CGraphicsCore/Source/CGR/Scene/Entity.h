@@ -7,6 +7,7 @@
 
 namespace Cgr
 {
+	using EntityHandle = entt::entity;
 	class CGR_API Entity
 	{
 	public:
@@ -61,6 +62,6 @@ namespace Cgr
 
 	private:
 		Scene* m_Scene = nullptr;
-		entt::entity m_Handle{ entt::null };
+		EntityHandle m_Handle{ entt::null };
 	};
 }

@@ -33,6 +33,14 @@ namespace Cgr
 		virtual uint32_t GetHeight() const = 0;
 		virtual std::string GetTitle() const = 0;
 
+		virtual void SetWindowPosition(int xPos, int yPos) = 0;
+		virtual void SetWindowSize(int width, int height) = 0;
+
+		virtual void Minimize() = 0;
+
+		// Maximizes/Restores the window
+		virtual void Maximize() = 0;
+
 		// Use to  application OnEvent callback
 		virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
 

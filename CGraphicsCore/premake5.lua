@@ -8,10 +8,6 @@ project "CGraphicsCore"
 
 	targetdir ("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
 	objdir ("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
-
-	defines {
-		"CGR_ENABLE_ASSERTS"
-	}
 	
 	files {
 		"Source/**.h",

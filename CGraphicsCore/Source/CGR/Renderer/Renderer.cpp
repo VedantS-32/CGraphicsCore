@@ -4,17 +4,55 @@
 #include "RenderCommand.h"
 #include "Camera.h"
 #include "CGR/Core/Application.h"
+#include "CGR/Asset/AssetManager.h"
 #include "EnvironmentMap.h"
+
+#include "glad/glad.h"
 
 #include <glm/gtc/type_ptr.hpp>
 
 static float offset = 0.0f;
 
-static float s_TriangleVertices[] = {
-	-1.0f, -1.0f,   // Bottom-left
-	 3.0f, -1.0f,   // Bottom-right (over-extended)
-	-1.0f,  3.0f    // Top-left (over-extended)
+static float s_CubeVertices[] = {
+	// Front face
+	-1.0f, -1.0f,  1.0f,  // Bottom-left
+	 1.0f, -1.0f,  1.0f,  // Bottom-right
+	 1.0f,  1.0f,  1.0f,  // Top-right
+	-1.0f,  1.0f,  1.0f,  // Top-left
+
+	// Back face
+	-1.0f, -1.0f, -1.0f,  // Bottom-left
+	 1.0f, -1.0f, -1.0f,  // Bottom-right
+	 1.0f,  1.0f, -1.0f,  // Top-right
+	-1.0f,  1.0f, -1.0f   // Top-left
 };
+
+static uint32_t s_CubeIndices[] = {
+	// Front face
+	0, 1, 2,
+	2, 3, 0,
+
+	// Right face
+	1, 5, 6,
+	6, 2, 1,
+
+	// Back face
+	5, 4, 7,
+	7, 6, 5,
+
+	// Left face
+	4, 0, 3,
+	3, 7, 4,
+
+	// Top face
+	3, 2, 6,
+	6, 7, 3,
+
+	// Bottom face
+	4, 5, 1,
+	1, 0, 4
+};
+
 
 namespace Cgr
 {
@@ -44,11 +82,12 @@ namespace Cgr
 		};
 
 		m_ENVMapVertexArray = VertexArray::Create();
-		m_ENVMapVertexBuffer = VertexBuffer::Create(sizeof(s_TriangleVertices), s_TriangleVertices, BufferDrawUsage::StaticDraw);
+		m_ENVMapVertexBuffer = VertexBuffer::Create(sizeof(s_CubeVertices), s_CubeVertices, BufferDrawUsage::StaticDraw);
+		m_ENVMapIndexBuffer = IndexBuffer::Create(sizeof(s_CubeIndices), s_CubeIndices, BufferDrawUsage::StaticDraw);
 
 		m_ENVLayout =
 		{
-			{ ShaderDataType::Float2, "aPosition" }
+			{ ShaderDataType::Float3, "aPosition" }
 		};
 
 		m_ENVMapVertexArray->SetBufferLayout(m_ENVLayout);
@@ -68,9 +107,12 @@ namespace Cgr
 	void Renderer::RenderSkybox(Camera& camera)
 	{
 		RenderCommand::EnableDepthMask(false);
+		glDepthFunc(GL_LEQUAL);
 		m_ENVMapVertexArray->Bind();
 		m_ENVMapVertexBuffer->Bind();
+		m_ENVMapIndexBuffer->Bind();
 		m_Skybox->Render(camera);
+		glDepthFunc(GL_LESS);
 		RenderCommand::EnableDepthMask(true);
 	}
 

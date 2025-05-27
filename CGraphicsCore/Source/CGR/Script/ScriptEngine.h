@@ -1,9 +1,10 @@
 #pragma once
 
-#include "CGR/Core/Core.h"
-
 #include "hl.h"
 #include "HashlinkHelper.h"
+
+#include "CGR/Core/Core.h"
+#include "CGR/Scene/Entity.h"
 
 namespace Cgr
 {
@@ -18,14 +19,17 @@ namespace Cgr
         // Load a Haxe script by class name
         bool LoadScript(const std::string& scriptPath);
 
+        void CreateEntityInstance(Entity& entity);
+
+        void OnEntityBegin(Entity& entity);
+		void OnEntityUpdate(Entity& entity, Timestep ts);
+
         // Attempts to get the function from the hl bytecode
         vclosure* GetFunction(const std::string& functionPath);
+        vclosure* GetMethodClosure(hl_obj_field& field);
 
         void CallVoidFunction(const std::string& functionPath, const std::vector<vdynamic*>& args);
         void CallVoidFunction(const std::string& functionPath);
-
-        // Update method to be called each frame
-        void Update(float deltaTime);
 
     private:
         hl_module* m_Module = nullptr;
@@ -33,5 +37,6 @@ namespace Cgr
         std::vector<void*> m_Args;
         bool m_Initialized = false;
         std::unordered_map<std::string, vclosure*> m_CachedFunctions;
+        std::unordered_map<EntityHandle, vdynamic*> m_CachedObjects;
 	};
 }

@@ -10,6 +10,74 @@
 namespace Cgr
 {
     extern const std::filesystem::path s_AssetPath;
+
+    static float s_LogoSize = 48.0f;
+
+    static ImVec2 s_LastWindowSize = { 0, 0 };
+
+    static bool s_IsDragging = false;
+
+    static void HandleWindowResize()
+    {
+        ImVec2 currentWindowSize = ImGui::GetWindowSize();
+
+        if (currentWindowSize.x != s_LastWindowSize.x ||
+            currentWindowSize.y != s_LastWindowSize.y)
+        {
+
+			//const_cast<Window&>(Application::Get().GetWindow()).SetWindowSize(
+				//(int)currentWindowSize.x, (int)currentWindowSize.y);
+
+            s_LastWindowSize = currentWindowSize;
+        }
+    }
+
+    static void HandleWindowDragging()
+    {
+        static glm::ivec2 dragOffset = { 0, 0 };
+
+        ImGuiIO& io = ImGui::GetIO();
+        ImVec2 mousePos = io.MousePos;
+
+
+        // Get the current window (should be called within a window context)
+        if (!ImGui::GetCurrentWindow()) return;
+
+        ImVec2 windowPos = ImGui::GetWindowPos();
+        ImVec2 windowSize = ImGui::GetWindowSize();
+
+        // Define draggable area (top 40 pixels of window)
+        ImRect draggableArea(windowPos.x, windowPos.y, windowPos.x + windowSize.x, windowPos.y + 40.0f);
+
+        // Check if mouse is in draggable area
+        bool mouseInDraggableArea = draggableArea.Contains(mousePos);
+
+        // Handle drag start
+        if (mouseInDraggableArea && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        {
+            if (!ImGui::IsAnyItemHovered() && !ImGui::IsAnyItemActive())
+            {
+                dragOffset = { (int)(mousePos.x - windowPos.x), (int)(mousePos.y - windowPos.y) };
+            }
+        }
+
+        // Handle dragging
+        if (s_IsDragging)
+        {
+            glm::ivec2 newPos = { mousePos.x - dragOffset.x, mousePos.y - dragOffset.y };
+            const_cast<Window&>(Application::Get().GetWindow()).SetWindowPosition(newPos.x, newPos.y);
+        }
+
+        if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
+        {
+            s_IsDragging = true;
+        }
+        else
+        {
+			s_IsDragging = false;
+        }
+    }
+
 	EditorLayer::EditorLayer(const std::string& layerName)
 		: Layer(layerName), m_ClearColor(0.5f, 0.5f, 0.5f, 1.0f), m_ViewportSize(1280, 720)
     {
@@ -29,6 +97,9 @@ namespace Cgr
         auto& model1 = entity.AddComponent<ModelComponent>();
         model1.SetModel(m_AssetManager->GetAsset<Model>(handle));
         auto& transform = entity.GetComponent<TransformComponent>();
+
+        handle = m_AssetManager->ImportAsset("Content/Icon/CStell.png");
+		m_Logo = m_AssetManager->GetAsset<Texture2D>(handle);
 
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
@@ -53,7 +124,7 @@ namespace Cgr
         m_Camera.SetPerspective(60.0f);
 
         m_ScriptEngine = Application::Get().GetScriptEngine();
-        m_ScriptEngine->LoadScript("Content/Script/build/hwl.hl");
+        //m_ScriptEngine->LoadScript("Content/Script/build/hwl.hl");
         //m_Camera.SetOrthographic(10.0f);
     }
 
@@ -107,202 +178,310 @@ namespace Cgr
 	void EditorLayer::OnUIRender()
 	{
         static bool dockSpaceOpen = true;
-        static bool opt_fullscreen = true;
-        static bool opt_padding = false;
+        static bool firstTime = true;
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
-        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-        // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_None;
         const ImGuiViewport* viewport = ImGui::GetMainViewport();
-        if (opt_fullscreen)
-        {
-            //m_ViewportSize = { viewport->WorkSize.x, viewport->WorkSize.y };
-            ImGui::SetNextWindowPos(viewport->WorkPos);
-            ImGui::SetNextWindowSize(viewport->WorkSize);
-            ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-        }
-        else
-        {
-            dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
-        }
 
-        // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-        // and handle the pass-thru hole, so we ask Begin() to not render a background.
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar;
+
         if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
             window_flags |= ImGuiWindowFlags_NoBackground;
 
-        // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-        // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-        // all active windows docked into it will lose their parent and become undocked.
-        // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-        // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-        if (!opt_padding)
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace Demo", &dockSpaceOpen, window_flags);
-        if (!opt_padding)
-            ImGui::PopStyleVar();
+        ImGui::Begin("##DockSpace", &dockSpaceOpen, window_flags);
 
-        if (opt_fullscreen)
-            ImGui::PopStyleVar(2);
+        HandleWindowResize();
 
         // Submit the DockSpace
         ImGuiIO& io = ImGui::GetIO();
         ImGuiStyle& style = ImGui::GetStyle();
         float minWinSizeX = style.WindowMinSize.x;
-        minWinSizeX = 370.0f;
+        style.WindowMinSize.x = 370.0f;
+
         if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
         {
-            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+            ImGuiID dockspace_id = ImGui::GetID("##DockSpace");
             ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
-        }
 
-        style.WindowMinSize.x = minWinSizeX;
-
-
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
+            // Create default layout on first run
+            if (firstTime)
             {
-                // Disabling fullscreen would allow the window to be moved to the front of other windows,
-                // which we can't undo at the moment without finer window depth/z control.
-                ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
-                ImGui::MenuItem("Padding", NULL, &opt_padding);
-                ImGui::Separator();
+                firstTime = false;
 
-                if (ImGui::MenuItem("New", "Ctrl+N"))
-                    NewScene();
+                // Clear any existing layout
+                ImGui::DockBuilderRemoveNode(dockspace_id);
+                ImGui::DockBuilderAddNode(dockspace_id, ImGuiDockNodeFlags_DockSpace);
+                ImGui::DockBuilderSetNodeSize(dockspace_id, viewport->WorkSize);
 
-                if (ImGui::MenuItem("Open", "Ctrl+O"))
-                    OpenScene();
+                // Split the dockspace into toolbar and main content 
+                ImGuiID dock_id_toolbar = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Up, s_LogoSize / viewport->WorkSize.y, &dock_id_toolbar, &dockspace_id);
 
-                if (ImGui::MenuItem("Save", "Ctrl+Shift+S"))
-                    SaveSceneAs();
+                // Split main area into center and right sidebar
+                ImGuiID dock_id_center;
+                ImGuiID dock_id_right = ImGui::DockBuilderSplitNode(dockspace_id, ImGuiDir_Right, 0.25f, &dock_id_right, &dock_id_center);
 
-                if (ImGui::MenuItem("Exit")) { Application::Get().Close(); }
+                // Split center into editor and content browser
+                ImGuiID dock_id_editor;
+                ImGuiID dock_id_content = ImGui::DockBuilderSplitNode(dock_id_center, ImGuiDir_Down, 0.25f, &dock_id_content, &dock_id_editor);
 
-                ImGui::EndMenu();
-            }
+                // Split right sidebar into scene graph and properties
+                ImGuiID dock_id_scene;
+                ImGuiID dock_id_properties = ImGui::DockBuilderSplitNode(dock_id_right, ImGuiDir_Down, 0.7f, &dock_id_properties, &dock_id_scene);
 
-            ImGui::EndMenuBar();
-        }
+                // Configure toolbar dock node to be fixed at top
+                ImGui::DockBuilderGetNode(dock_id_toolbar)->LocalFlags |= ImGuiDockNodeFlags_NoTabBar | ImGuiDockNodeFlags_NoResizeY | ImGuiDockNodeFlags_NoDockingOverMe;
 
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-        ImGui::Begin("Viewport");
+                // Dock windows to specific areas
+                ImGui::DockBuilderDockWindow("Toolbar", dock_id_toolbar);
+                ImGui::DockBuilderDockWindow("Viewport", dock_id_editor);
+                ImGui::DockBuilderDockWindow("Scene Graph", dock_id_scene);
+                ImGui::DockBuilderDockWindow("Properties", dock_id_properties);
+                ImGui::DockBuilderDockWindow("Content Browser", dock_id_content);
 
-        auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-        auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-        auto viewportOffset = ImGui::GetWindowPos();
-
-        m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-        m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-
-        m_ViewportFocused = ImGui::IsWindowFocused();
-        m_ViewportHovered = ImGui::IsWindowHovered();
-        Application::Get().GetUILayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
-
-        ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-        m_ViewportSize = { viewportSize.x, viewportSize.y };
-        if ((m_ViewportSize != *((glm::vec2*)&viewportSize)) && (viewportSize.x > 0 && viewportSize.y > 0))
-        {
-            //CGR_INFO("Viewport resized: {0}, {1}", m_ViewportSize.x, m_ViewportSize.y);
-            m_Camera.SetViewportSize(viewportSize.x, viewportSize.y);
-            m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-        }
-
-        uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-        ImGui::Image(reinterpret_cast<void*>(textureID), ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-
-        if (ImGui::BeginDragDropTarget())
-        {
-            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-            {
-                auto path = static_cast<const char*>(payload->Data);
-                OpenScene(std::filesystem::path(s_AssetPath) / path);
-            }
-            ImGui::EndDragDropTarget();
-        }
-
-        bool isViewportHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup | ImGuiHoveredFlags_AllowWhenBlockedByActiveItem);
-        Entity selectedEntity = m_SceneGraphPanel->GetSelectedEntity();
-        ImGuizmo::SetOrthographic(false);
-        ImGuizmo::SetDrawlist();
-
-        float windowWidth = (float)ImGui::GetWindowWidth();
-        float windowHeight = (float)ImGui::GetWindowHeight();
-        ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y, m_ViewportBounds[1].x - m_ViewportBounds[0].x, m_ViewportBounds[1].y - m_ViewportBounds[0].y);
-
-        // Editor Camera
-        const glm::mat4& cameraProjection = m_Camera.GetProjectionMatrix();
-        glm::mat4 cameraView = m_Camera.GetViewMatrix();
-
-
-        if (selectedEntity)
-        {
-            // Entity transform
-            auto& tc = selectedEntity.GetComponent<TransformComponent>();
-            glm::mat4 transform = tc.GetTransform();
-
-            // Snapping
-            bool snap = Input::IsKeyPressed(Key::CGR_KEY_LEFT_CONTROL);
-            float snapValue = 0.5f; // Snap to 0.5m for translation/rotation
-            // Snap to 10 degrees for rotation
-            if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
-                snapValue = 10.0f;
-
-            float snapValues[] = { snapValue, snapValue, snapValue };
-            ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
-                (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
-                nullptr, snap ? snapValues : nullptr);
-
-            if (ImGuizmo::IsOver() && m_GizmoType != -1)
-            {
-                glm::vec3 translation{ 0.0f }, rotation{ 0.0f }, scale{ 1.0f };
-                Math::DecomposeTransform(transform, translation, rotation, scale);
-
-                glm::vec3 deltaRotation = rotation - tc.Rotation;
-                tc.Translation = translation;
-                tc.Rotation += deltaRotation;
-                tc.Scale = scale;
+                // Apply the layout
+                ImGui::DockBuilderFinish(dockspace_id);
             }
         }
-
-        ImGui::Begin("World Settings");
-        if (ImGui::Button("Reload Script!"))
-        {
-            OnReloadButtonClicked();
-        }
-        if (ImGui::Button("Call Haxe Function!"))
-        {
-            OnCallHaxeFuncButtonClicked();
-        }
-        auto& pos = m_Camera.GetPosition();
-        auto txt = std::format("Camera position x:{}, y:{}, z:{}", pos.x, pos.y, pos.z);
-        ImGui::Text(txt.c_str());
-        if (ImGui::ColorEdit4("Clear color", glm::value_ptr(m_ClearColor)))
-            RenderCommand::SetClearColor(m_ClearColor);
-        if (ImGui::ColorEdit3("Ambient Light", glm::value_ptr(m_Renderer->m_AmbientLight)))
-            m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_AmbientLight));
-        if (ImGui::DragFloat3("Light Position", glm::value_ptr(m_Renderer->m_LightPosition)))
-            m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_LightPosition));
-        
-        m_ReflectionSystem->ReflectClass("OpenGLSkybox");
-        m_ReflectionSystem->ReflectClass("Camera");
-        m_ReflectionSystem->ReflectClass("OpenGLTexture");
-        //m_Camera.UpdateProjectionMatrix();
 
         ImGui::End();
+        style.WindowMinSize.x = minWinSizeX;
+        ImGui::PopStyleVar(2);
+
+        ImGuiWindowFlags toolbar_flags =
+            ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+            ImGuiWindowFlags_NoScrollbar |
+            ImGuiWindowFlags_NoResize;
+
+        ImGui::Begin("Toolbar", nullptr, toolbar_flags);
+        {
+            // Logo and toolbar buttons
+            ImGui::Image(m_Logo->GetRendererID(), { s_LogoSize, s_LogoSize }, ImVec2(0, 1), ImVec2(1, 0));
+            ImGui::SameLine();
+
+            // Toolbar buttons styling
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
+			ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f);
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.12f, 0.12f, 0.12f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+
+            if (ImGui::Button("File", ImVec2(50.0f, 25.0f))) {}
+            ImGui::SameLine();
+            if (ImGui::Button("Edit", ImVec2(50.0f, 25.0f))) {}
+            ImGui::SameLine();
+            if (ImGui::Button("View", ImVec2(50.0f, 25.0f))) {}
+            ImGui::SameLine();
+            if (ImGui::Button("Tools", ImVec2(50.0f, 25.0f))) {}
+
+            ImGui::PopStyleColor(2);
+            ImGui::PopStyleVar(2);
+        }
+
+        // Play button section centered in the titlebar
+        ImGui::SameLine(ImGui::GetWindowWidth() * 0.5f - s_LogoSize);
+
+        // Play/Stop button styling
+        ImVec4 playButtonColor = m_IsRuntime ? ImVec4(0.7f, 0.2f, 0.2f, 1.0f) : ImVec4(0.2f, 0.7f, 0.3f, 1.0f);
+        ImVec4 playButtonHoveredColor = m_IsRuntime ? ImVec4(0.8f, 0.3f, 0.3f, 1.0f) : ImVec4(0.3f, 0.8f, 0.4f, 1.0f);
+        ImVec4 playButtonActiveColor = m_IsRuntime ? ImVec4(0.6f, 0.1f, 0.1f, 1.0f) : ImVec4(0.1f, 0.6f, 0.2f, 1.0f);
+
+        ImGui::PushStyleColor(ImGuiCol_Button, playButtonColor);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, playButtonHoveredColor);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, playButtonActiveColor);
+
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() / 5.0f); // Center vertically
+
+        if (ImGui::Button(m_IsRuntime ? "[ ] Stop" : "|> Play", ImVec2(64.0f, 36.0f)))
+        {
+            if (!m_IsRuntime)
+            {
+                // Start runtime
+                m_IsRuntime = true;
+                m_ActiveScene->StartRuntime();
+            }
+            else
+            {
+                // Stop runtime
+                m_IsRuntime = false;
+                NewScene();
+                m_ActiveScene->StopRuntime();
+            }
+        }
+
+        ImGui::PopStyleColor(3); // For play button colors
+
+        // Window controls on the right
+        float windowControlsWidth = 128.0f;
+        ImGui::SameLine(ImGui::GetWindowWidth() - windowControlsWidth);
+
+        // Minimize, Maximize, Close buttons
+		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f);
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 0.0f));
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+
+        if (ImGui::Button("_", ImVec2(40.0f, 30.0f)))
+        {
+            // Minimize window
+			const_cast<Window&>(Application::Get().GetWindow()).Minimize();
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("[ ]", ImVec2(40.0f, 30.0f)))
+        {
+            // Maximize/restore window
+
+			const_cast<Window&>(Application::Get().GetWindow()).Maximize();
+        }
+        ImGui::SameLine();
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
+        if (ImGui::Button("X", ImVec2(40.0f, 30.0f)))
+        {
+            Application::Get().Close();
+        }
+        ImGui::PopStyleVar();
+        ImGui::PopStyleColor(3); // For window control colors
+
+        // Enable window dragging for the titlebar
+        if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
+        {
+            HandleWindowDragging();
+        }
+
+        ImGui::End();
+
+        // Editor Window (Main Viewport)
+        ImGui::Begin("Viewport");
+        {
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 2));
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(0.0f, 0.48f, 0.8f, 1.0f));
+
+            ImGui::PopStyleColor(3);
+            ImGui::PopStyleVar();
+            ImGui::Separator();
+
+            // Calculate viewport bounds and size
+            auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+            auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+            auto viewportOffset = ImGui::GetWindowPos();
+
+            m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+            m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+
+            m_ViewportFocused = ImGui::IsWindowFocused();
+            m_ViewportHovered = ImGui::IsWindowHovered();
+            Application::Get().GetUILayer()->BlockEvents(!m_ViewportFocused && !m_ViewportHovered);
+
+            ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+            m_ViewportSize = { viewportSize.x, viewportSize.y };
+
+            // Handle viewport resize
+            if ((m_ViewportSize != *((glm::vec2*)&viewportSize)) && (viewportSize.x > 0 && viewportSize.y > 0))
+            {
+                m_Camera.SetViewportSize(viewportSize.x, viewportSize.y);
+                m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            }
+
+            // Render viewport
+            uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+            ImGui::Image(textureID, ImVec2{ m_ViewportSize.x, m_ViewportSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+            // Drag and drop handling
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    auto path = static_cast<const char*>(payload->Data);
+                    OpenScene(std::filesystem::path(s_AssetPath) / path);
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            // Gizmo handling
+            Entity selectedEntity = m_SceneGraphPanel->GetSelectedEntity();
+
+            if (selectedEntity && m_GizmoType != -1)
+            {
+                ImGuizmo::SetOrthographic(false);
+                ImGuizmo::SetDrawlist();
+                ImGuizmo::SetRect(m_ViewportBounds[0].x, m_ViewportBounds[0].y,
+                    m_ViewportBounds[1].x - m_ViewportBounds[0].x,
+                    m_ViewportBounds[1].y - m_ViewportBounds[0].y);
+
+                const glm::mat4& cameraProjection = m_Camera.GetProjectionMatrix();
+                glm::mat4 cameraView = m_Camera.GetViewMatrix();
+                auto& tc = selectedEntity.GetComponent<TransformComponent>();
+                glm::mat4 transform = tc.GetTransform();
+
+                bool snap = Input::IsKeyPressed(Key::CGR_KEY_LEFT_CONTROL);
+                float snapValue = (m_GizmoType == ImGuizmo::OPERATION::ROTATE) ? 10.0f : 0.5f;
+                float snapValues[] = { snapValue, snapValue, snapValue };
+
+                ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                    (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                    nullptr, snap ? snapValues : nullptr);
+
+                if (ImGuizmo::IsUsing())
+                {
+                    glm::vec3 translation, rotation, scale;
+                    Math::DecomposeTransform(transform, translation, rotation, scale);
+                    glm::vec3 deltaRotation = rotation - tc.Rotation;
+                    tc.Translation = translation;
+                    tc.Rotation += deltaRotation;
+                    tc.Scale = scale;
+                }
+            }
+        }
+        ImGui::End();
+
+		ImGui::ShowDemoWindow();
+
+        //ImGui::SameLine();
+
+        //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
+        //ImGui::Begin("Viewport");
+        //
+        //ImGui::End();
+        //ImGui::PopStyleVar();
+
+        //ImGui::Begin("World Settings");
+        //if (ImGui::Button("Reload Script!"))
+        //{
+        //    OnReloadButtonClicked();
+        //}
+        //if (ImGui::Button("Call Haxe Function!"))
+        //{
+        //    OnCallHaxeFuncButtonClicked();
+        //}
+        //auto& pos = m_Camera.GetPosition();
+        //auto txt = std::format("Camera position x:{}, y:{}, z:{}", pos.x, pos.y, pos.z);
+        //ImGui::Text(txt.c_str());
+        //if (ImGui::ColorEdit4("Clear color", glm::value_ptr(m_ClearColor)))
+        //    RenderCommand::SetClearColor(m_ClearColor);
+        //if (ImGui::ColorEdit3("Ambient Light", glm::value_ptr(m_Renderer->m_AmbientLight)))
+        //    m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_AmbientLight));
+        //if (ImGui::DragFloat3("Light Position", glm::value_ptr(m_Renderer->m_LightPosition)))
+        //    m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_LightPosition));
+        //
+        //m_ReflectionSystem->ReflectClass("OpenGLSkybox");
+        //m_ReflectionSystem->ReflectClass("Camera");
+        //m_ReflectionSystem->ReflectClass("OpenGLTexture");
+        ////m_Camera.UpdateProjectionMatrix();
+
+        //ImGui::End();
 
         m_ContentBrowserPanel->OnImGuiRender();
         m_SceneGraphPanel->OnImGuiRender();
 
-        ImGui::End();
-        ImGui::PopStyleVar();
-        ImGui::End();
+        //ImGui::End();
+        //ImGui::PopStyleVar();
+        //ImGui::End();
     }
 
 	void EditorLayer::OnEvent(Event& e)
@@ -384,8 +563,8 @@ namespace Cgr
     {
         if (e.GetMouseButton() == Mouse::CGR_BUTTON_LEFT)
         {
-            if (m_ViewportHovered && !ImGuizmo::IsOver() && !ImGuizmo::IsUsing() && !Input::IsKeyPressed(Key::CGR_KEY_LEFT_ALT))
-                m_SceneGraphPanel->SetSelectedEntity(m_HoveredEntity);
+            //if (m_ViewportHovered && !ImGuizmo::IsOver() && !ImGuizmo::IsUsing() && !Input::IsKeyPressed(Key::CGR_KEY_LEFT_ALT))
+            //    m_SceneGraphPanel->SetSelectedEntity(m_HoveredEntity);
         }
 
         return false;
@@ -423,7 +602,7 @@ namespace Cgr
         m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         m_SceneGraphPanel->SetContext(m_ActiveScene);
 
-        SceneSerializer serializer(m_ActiveScene);
+        SceneSerializer serializer(m_ActiveScene.get());
         serializer.Deserialize(path.string());
     }
 
@@ -432,7 +611,7 @@ namespace Cgr
         std::string filepath = FileDialogs::SaveFile("CGR Scene (*.cgr)\0*.cgr\0");
         if (!filepath.empty())
         {
-            SceneSerializer serializer(m_ActiveScene);
+            SceneSerializer serializer(m_ActiveScene.get());
             serializer.Serialize(filepath);
         }
     }

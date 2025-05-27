@@ -4,6 +4,7 @@
 #include "CGR/Core/Application.h"
 #include "CGR/Asset/AssetManager.h"
 #include "CGR/Utils/YamlOperators.h"
+#include "CGR/Renderer/Renderer.h"
 #include <stb_image.h>
 
 namespace Cgr

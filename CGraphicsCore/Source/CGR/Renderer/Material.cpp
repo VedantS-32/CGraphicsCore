@@ -2,6 +2,7 @@
 #include "Material.h"
 
 #include "CGR/Core/Application.h"
+#include "CGR/Asset/Assetmanager.h"
 
 namespace Cgr
 {

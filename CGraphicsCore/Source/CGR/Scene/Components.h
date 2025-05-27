@@ -3,6 +3,7 @@
 #include "CGR/Core/Core.h"
 #include "CGR/Core/Application.h"
 #include "CGR/Renderer/Model.h"
+#include "CGR/Renderer/Renderer.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
@@ -85,5 +86,16 @@ namespace Cgr
 
 	private:
 		Ref<Model> m_Model;
+	};
+
+	struct CGR_API ScriptComponent
+	{
+		std::string ClassName;
+		std::string ScriptPath;
+		ScriptComponent() = default;
+		ScriptComponent(const ScriptComponent&) = default;
+		ScriptComponent(const std::string& className, const std::string& scriptPath)
+			: ClassName(className), ScriptPath(scriptPath) {
+		}
 	};
 }

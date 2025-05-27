@@ -1,3 +1,5 @@
+require "Script/PremakeVSCode"
+
 workspace "CGraphicsCore"
 	architecture "x64"
 	startproject "CGraphicsSandbox"

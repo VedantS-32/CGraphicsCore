@@ -159,13 +159,13 @@ namespace Cgr
 		m_Shader->Bind();
 		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
 		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(m_Rotation), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 inverseVP = glm::inverse(camera.GetViewProjectionMatrix() * rotationMatrix);
-		m_Shader->SetMat4f("uInverseVP", inverseVP);
+		m_Shader->SetMat4f("uProjection", camera.GetProjectionMatrix());
+		m_Shader->SetMat4f("uView", camera.GetViewMatrix() * rotationMatrix);
 		m_Shader->Set1i("uSkybox", 0);
 		m_Shader->Set1f("uIntensity", m_Intensity);
 		m_Shader->Set1f("uRed", m_Red);
 
-		glDrawArrays(GL_TRIANGLES, 0, 3);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
 	}
 
 	void OpenGLSkybox::OnAttributeChange()

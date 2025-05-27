@@ -48,9 +48,17 @@ typedef struct {
 #define ERROR(msg) if( !r->error ) { r->error = msg; hl_debug_break(); }
 #define CHK_ERROR() if( r->error ) return
 
-static int setjmp_wrapper(jmp_buf env) {
-	return _setjmp(env);
-}
+#ifdef _MSC_VER
+	static int setjmp_wrapper(jmp_buf env) {
+		return _setjmp(env);
+	}
+#else
+	static int setjmp_wrapper(jmp_buf env) {
+		return setjmp(env, NULL);
+	}
+#endif
+
+
 
 static unsigned char hl_read_b(hl_reader* r) {
 	if (r->pos >= r->size) {
@@ -1115,7 +1123,7 @@ void hl_code_hash_free(hl_code_hash* h) {
 #	include <windows.h>
 EXTERN_C IMAGE_DOS_HEADER __ImageBase;
 #	define dlopen(l,p)		(void*)( (l) ? LoadLibraryA(l) : (HMODULE)&__ImageBase)
-#	define dlsym(h,n)		GetProcAddress((HMODULE)h,n)
+#	define dlsym(h, n) (void*)(uintptr_t)GetProcAddress((HMODULE)(h), (n))
 #else
 #	include <dlfcn.h>
 #endif
@@ -1646,7 +1654,7 @@ static void hl_module_init_natives(hl_module * m) {
 			libHandler = resolve_library(lib, is_opt);
 		}
 		if (libHandler == DISABLED_LIB_PTR) {
-			m->functions_ptrs[n->findex] = disabled_primitive;
+			m->functions_ptrs[n->findex] = (void*)(uintptr_t)disabled_primitive;
 			continue;
 		}
 		strcpy(p, "hlp_");
@@ -1657,7 +1665,7 @@ static void hl_module_init_natives(hl_module * m) {
 		f = dlsym(libHandler, tmp);
 		if (f == NULL) {
 			if (is_opt) {
-				m->functions_ptrs[n->findex] = hl_prim_not_loaded;
+				m->functions_ptrs[n->findex] = (void*)(uintptr_t)hl_prim_not_loaded;
 				continue;
 			}
 			hl_fatal2("Failed to load function %s@%s", n->lib, n->name);
@@ -1745,7 +1753,7 @@ int hl_module_init(hl_module * m, h_bool hot_reload, h_bool vtune_later) {
 	// RESET globals
 	for (i = 0;i < m->code->nglobals;i++) {
 		hl_type* t = m->code->globals[i];
-		if (t->kind == HFUN) *(void**)(m->globals_data + m->globals_indexes[i]) = null_function;
+		if (t->kind == HFUN) *(void**)(m->globals_data + m->globals_indexes[i]) = (void*)(uintptr_t)null_function;
 		if (hl_is_ptr(t))
 			hl_add_root(m->globals_data + m->globals_indexes[i]);
 	}
@@ -1787,7 +1795,7 @@ int hl_module_init(hl_module * m, h_bool hot_reload, h_bool vtune_later) {
 	}
 #	endif
 	hl_module_add(m);
-	hl_setup_exception(module_resolve_symbol, module_capture_stack);
+	hl_setup_exception((void*)(uintptr_t)module_resolve_symbol, (void*)(uintptr_t)module_capture_stack);
 	hl_gc_set_dump_types(hl_module_types_dump);
 	hl_jit_free(ctx, hot_reload);
 	if (hot_reload) {
@@ -2462,12 +2470,12 @@ static const char* KNAMES[] = { "cpu","fpu","stack","const","addr","mem","unused
 #define ERRIF(c)	if( c ) { printf("%s(%s,%s)\n",f?f->name:"???",KNAMES[a->kind], KNAMES[b->kind]); ASSERT(0); }
 
 typedef struct {
-	const char* name;						// single operand
-	int r_mem;		// r32 / r/m32				r32
-	int mem_r;		// r/m32 / r32				r/m32
-	int r_const;	// r32 / imm32				imm32
-	int r_i8;		// r32 / imm8				imm8
-	int mem_const;	// r/m32 / imm32			N/A
+	const char* name;
+	unsigned int r_mem;
+	unsigned int mem_r;
+	unsigned int r_const;
+	unsigned int r_i8;
+	unsigned int mem_const;
 } opform;
 
 #define FLAG_LONGOP	0x80000000
@@ -3610,7 +3618,7 @@ static void op_call_fun(jit_ctx* ctx, vreg* dst, int findex, int count, int* arg
 		ASSERT(fid);
 	}
 	else if (isNative) {
-		call_native(ctx, ctx->m->functions_ptrs[findex], size);
+		call_native(ctx, (void*)(uintptr_t)ctx->m->functions_ptrs[findex], size);
 	}
 	else {
 		int cpos = BUF_POS() + (IS_WINCALL64 ? 4 : 0);
@@ -3696,7 +3704,7 @@ static void call_native_consts(jit_ctx* ctx, void* nativeFun, int_val* args, int
 	for (i = nargs - 1;i >= 0;i--)
 		op32(ctx, PUSH, pconst64(&p, args[i]), UNUSED);
 #	endif
-	call_native(ctx, nativeFun, size);
+	call_native(ctx, (void*)(uintptr_t)nativeFun, size);
 }
 
 static void on_jit_error(const char* msg, int_val line) {
@@ -3714,7 +3722,7 @@ static void on_jit_error(const char* msg, int_val line) {
 
 static void _jit_error(jit_ctx* ctx, const char* msg, int line) {
 	int_val args[2] = { (int_val)msg, (int_val)line };
-	call_native_consts(ctx, on_jit_error, args, 2);
+	call_native_consts(ctx, (void*)(uintptr_t)on_jit_error, args, 2);
 }
 
 
@@ -3744,10 +3752,10 @@ static preg* op_binop(jit_ctx* ctx, vreg* dst, vreg* a, vreg* b, hl_op bop) {
 			int size = prepare_call_args(ctx, 2, args, ctx->vregs, 0);
 			void* mod_fun;
 			if (isf32)
-				mod_fun = static_cast<float(*)(float, float)>(fmodf);
+				mod_fun = (void*)(uintptr_t)((float (*)(float, float))fmodf);
 			else
-				mod_fun = static_cast<double(*)(double, double)>(fmod);
-			call_native(ctx, mod_fun, size);
+				mod_fun = (void*)(uintptr_t)((double (*)(double, double))fmod);
+			call_native(ctx, (void*)(uintptr_t)mod_fun, size);
 			store_result(ctx, dst);
 			return fetch(dst);
 		}
@@ -4118,7 +4126,7 @@ static void op_jump(jit_ctx* ctx, vreg* a, vreg* b, hl_opcode* op, int targetPos
 	if (a->t->kind == HDYN || b->t->kind == HDYN || a->t->kind == HFUN || b->t->kind == HFUN) {
 		int args[] = { a->stack.id, b->stack.id };
 		int size = prepare_call_args(ctx, 2, args, ctx->vregs, 0);
-		call_native(ctx, hl_dyn_compare, size);
+		call_native(ctx, (void*)(uintptr_t)hl_dyn_compare, size);
 		if (op->op == OJSGt || op->op == OJSGte) {
 			preg p;
 			int jinvalid;
@@ -4137,7 +4145,7 @@ static void op_jump(jit_ctx* ctx, vreg* a, vreg* b, hl_opcode* op, int targetPos
 		int args[] = { a->stack.id, b->stack.id };
 		int size = prepare_call_args(ctx, 2, args, ctx->vregs, 0);
 		preg p;
-		call_native(ctx, hl_same_type, size);
+		call_native(ctx, (void*)(uintptr_t)hl_same_type, size);
 		op64(ctx, CMP8, PEAX, pconst(&p, 1));
 	}
 	break;
@@ -4683,7 +4691,8 @@ static void jit_hl2c(jit_ctx* ctx) {
 	op64(ctx, LEA, tmp, pmem(&p, Ebp, args_pos));
 	set_native_arg(ctx, tmp);
 	set_native_arg(ctx, cl);
-	call_native(ctx, jit_wrapper_ptr, size);
+	call_native(ctx, (void*)(uintptr_t)
+	jit_wrapper_ptr, size);
 	XJump_small(JAlways, jexit);
 
 	patch_jump(ctx, jfloat1);
@@ -4694,7 +4703,7 @@ static void jit_hl2c(jit_ctx* ctx) {
 	op64(ctx, LEA, tmp, pmem(&p, Ebp, args_pos));
 	set_native_arg(ctx, tmp);
 	set_native_arg(ctx, cl);
-	call_native(ctx, jit_wrapper_d, size);
+	call_native(ctx, (void*)(uintptr_t)jit_wrapper_d, size);
 
 	patch_jump(ctx, jexit);
 	op64(ctx, MOV, PESP, PEBP);
@@ -4748,7 +4757,7 @@ static void jit_null_access(jit_ctx* ctx) {
 	op64(ctx, PUSH, PEBP, UNUSED);
 	op64(ctx, MOV, PEBP, PESP);
 	int_val arg = (int_val)USTR("Null access");
-	call_native_consts(ctx, jit_fail, &arg, 1);
+	call_native_consts(ctx, (void*)(uintptr_t)jit_fail, &arg, 1);
 }
 
 static void jit_null_fail(int fhash) {
@@ -4768,14 +4777,14 @@ static void jit_null_field_access(jit_ctx* ctx) {
 	int size = begin_native_call(ctx, 1);
 	int args_pos = (IS_WINCALL64 ? 32 : 0) + HL_WSIZE * 2;
 	set_native_arg(ctx, pmem(&p, Ebp, args_pos));
-	call_native(ctx, jit_null_fail, size);
+	call_native(ctx, (void*)(uintptr_t)jit_null_fail, size);
 }
 
 static void jit_assert(jit_ctx* ctx) {
 	op64(ctx, PUSH, PEBP, UNUSED);
 	op64(ctx, MOV, PEBP, PESP);
 	int_val arg = 0;
-	call_native_consts(ctx, jit_fail, &arg, 1);
+	call_native_consts(ctx, (void*)(uintptr_t)jit_fail, &arg, 1);
 }
 
 static int jit_build(jit_ctx* ctx, void (*fbuild)(jit_ctx*)) {
@@ -4821,54 +4830,54 @@ void hl_jit_reset(jit_ctx* ctx, hl_module* m) {
 static void* get_dyncast(hl_type* t) {
 	switch (t->kind) {
 	case HF32:
-		return hl_dyn_castf;
+		return (void*)(uintptr_t)hl_dyn_castf;
 	case HF64:
-		return hl_dyn_castd;
+		return (void*)(uintptr_t)hl_dyn_castd;
 	case HI64:
-		return hl_dyn_casti64;
+		return (void*)(uintptr_t)hl_dyn_casti64;
 	case HI32:
 	case HUI16:
 	case HUI8:
 	case HBOOL:
-		return hl_dyn_casti;
+		return (void*)(uintptr_t)hl_dyn_casti;
 	default:
-		return hl_dyn_castp;
+		return (void*)(uintptr_t)hl_dyn_castp;
 	}
 }
 
 static void* get_dynset(hl_type* t) {
 	switch (t->kind) {
 	case HF32:
-		return hl_dyn_setf;
+		return (void*)(uintptr_t)hl_dyn_setf;
 	case HF64:
-		return hl_dyn_setd;
+		return (void*)(uintptr_t)hl_dyn_setd;
 	case HI64:
-		return hl_dyn_seti64;
+		return (void*)(uintptr_t)hl_dyn_seti64;
 	case HI32:
 	case HUI16:
 	case HUI8:
 	case HBOOL:
-		return hl_dyn_seti;
+		return (void*)(uintptr_t)hl_dyn_seti;
 	default:
-		return hl_dyn_setp;
+		return (void*)(uintptr_t)hl_dyn_setp;
 	}
 }
 
 static void* get_dynget(hl_type* t) {
 	switch (t->kind) {
 	case HF32:
-		return hl_dyn_getf;
+		return (void*)(uintptr_t)hl_dyn_getf;
 	case HF64:
-		return hl_dyn_getd;
+		return (void*)(uintptr_t)hl_dyn_getd;
 	case HI64:
-		return hl_dyn_geti64;
+		return (void*)(uintptr_t)hl_dyn_geti64;
 	case HI32:
 	case HUI16:
 	case HUI8:
 	case HBOOL:
-		return hl_dyn_geti;
+		return (void*)(uintptr_t)hl_dyn_geti;
 	default:
-		return hl_dyn_getp;
+		return (void*)(uintptr_t)hl_dyn_getp;
 	}
 }
 
@@ -4956,7 +4965,7 @@ static void make_dyn_cast(jit_ctx* ctx, vreg* dst, vreg* v) {
 	else
 		op64(ctx, SUB, tmp, pconst(&p, -v->stackPos));
 	set_native_arg(ctx, tmp);
-	call_native(ctx, get_dyncast(dst->t), size);
+	call_native(ctx, (void*)(uintptr_t)get_dyncast(dst->t), size);
 	store_result(ctx, dst);
 }
 
@@ -5212,7 +5221,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 			if (ra->t->kind == HBOOL) {
 				int size = begin_native_call(ctx, 1);
 				set_native_arg(ctx, fetch(ra));
-				call_native(ctx, hl_alloc_dynbool, size);
+				call_native(ctx, (void*)(uintptr_t)hl_alloc_dynbool, size);
 				store(ctx, dst, PEAX, true);
 			}
 			else {
@@ -5227,7 +5236,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 					XJump_small(JAlways, jskip);
 					patch_jump(ctx, jnz);
 				}
-				call_native_consts(ctx, hl_alloc_dynamic, &rt, 1);
+				call_native_consts(ctx, (void*)(uintptr_t)hl_alloc_dynamic, &rt, 1);
 				// copy value to dynamic
 				if ((IS_FLOAT(ra) || ra->size == 8) && !IS_64) {
 					preg* tmp = REG_AT(RCPU_SCRATCH_REGS[1]);
@@ -5276,7 +5285,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 		{
 			int size;
 			size = prepare_call_args(ctx, 1, &o->p2, ctx->vregs, 0);
-			call_native(ctx, uint_to_double, size);
+			call_native(ctx, (void*)(uintptr_t)uint_to_double, size);
 			store_result(ctx, dst);
 		}
 		break;
@@ -5407,19 +5416,19 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 			switch (dst->t->kind) {
 			case HOBJ:
 			case HSTRUCT:
-				allocFun = hl_alloc_obj;
+				allocFun = (void*)(uintptr_t)hl_alloc_obj;
 				break;
 			case HDYNOBJ:
-				allocFun = hl_alloc_dynobj;
+				allocFun = (void*)(uintptr_t)hl_alloc_dynobj;
 				nargs = 0;
 				break;
 			case HVIRTUAL:
-				allocFun = hl_alloc_virtual;
+				allocFun = (void*)(uintptr_t)hl_alloc_virtual;
 				break;
 			default:
 				ASSERT(dst->t->kind);
 			}
-			call_native_consts(ctx, allocFun, args, nargs);
+			call_native_consts(ctx, (void*)(uintptr_t)allocFun, args, nargs);
 			store(ctx, dst, PEAX, true);
 		}
 		break;
@@ -5437,7 +5446,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 
 			set_native_arg(ctx, pconst64(&p, RESERVE_ADDRESS));
 			set_native_arg(ctx, pconst64(&p, (int_val)m->code->functions[m->functions_indexes[o->p2]].type));
-			call_native(ctx, hl_alloc_closure_ptr, size);
+			call_native(ctx, (void*)(uintptr_t)hl_alloc_closure_ptr, size);
 			store(ctx, dst, PEAX, true);
 		}
 		break;
@@ -5466,7 +5475,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 			set_native_arg(ctx, r);
 			op64(ctx, MOV, r, pconst64(&p, (int_val)t));
 			set_native_arg(ctx, r);
-			call_native(ctx, hl_alloc_closure_ptr, size);
+			call_native(ctx, (void*)(uintptr_t)hl_alloc_closure_ptr, size);
 			store(ctx, dst, PEAX, true);
 		}
 		break;
@@ -5500,7 +5509,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 				op64(ctx, PUSH, r, UNUSED);
 				op64(ctx, PUSH, alloc_cpu(ctx, ra, true), UNUSED);
 #				endif
-				call_native(ctx, hl_dyn_call, size);
+				call_native(ctx, (void*)(uintptr_t)hl_dyn_call, size);
 				if (dst->t->kind != HVOID) {
 					store(ctx, dst, PEAX, true);
 					make_dyn_cast(ctx, dst, dst);
@@ -5599,7 +5608,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 				if (need_type) set_native_arg(ctx, pconst64(&p, (int_val)dst->t));
 				set_native_arg(ctx, pconst64(&p, (int_val)ra->t->virt->fields[o->p3].hashed_name));
 				set_native_arg(ctx, v);
-				call_native(ctx, get_dynget(dst->t), size);
+				call_native(ctx, (void*)(uintptr_t)get_dynget(dst->t), size);
 				store_result(ctx, dst);
 				XJump_small(JAlways, jend);
 				patch_jump(ctx, jhasfield);
@@ -5692,7 +5701,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 				op64(ctx, PUSH, r, UNUSED);
 				op64(ctx, PUSH, obj, UNUSED);
 #						endif
-				call_native(ctx, get_dynset(rb->t), size);
+				call_native(ctx, (void*)(uintptr_t)get_dynset(rb->t), size);
 				XJump_small(JAlways, jend);
 				patch_jump(ctx, jhasfield);
 				copy_from(ctx, pmem(&p, (CpuReg)r->id, 0), rb);
@@ -5846,7 +5855,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 				set_native_arg(ctx, pconst(&p, obj->t->virt->fields[o->p2].hashed_name)); // fid
 				set_native_arg(ctx, pconst64(&p, (int_val)obj->t->virt->fields[o->p2].t)); // ftype
 				set_native_arg(ctx, pmem(&p, static_cast<CpuReg>(v->id), HL_WSIZE)); // o->value
-				call_native(ctx, hl_dyn_call_obj, size + paramsSize);
+				call_native(ctx, (void*)(uintptr_t)hl_dyn_call_obj, size + paramsSize);
 				if (need_dyn) {
 					preg* r = IS_FLOAT(dst) ? REG_AT(XMM(0)) : PEAX;
 					copy(ctx, r, pmem(&p, Esp, HDYN_VALUE - (int)sizeof(vdynamic)), dst->size);
@@ -5898,13 +5907,13 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 		case ORethrow:
 		{
 			int size = prepare_call_args(ctx, 1, &o->p1, ctx->vregs, 0);
-			call_native(ctx, hl_rethrow, size);
+			call_native(ctx, (void*)(uintptr_t)hl_rethrow, size);
 		}
 		break;
 		case OThrow:
 		{
 			int size = prepare_call_args(ctx, 1, &o->p1, ctx->vregs, 0);
-			call_native(ctx, hl_throw, size);
+			call_native(ctx, (void*)(uintptr_t)hl_throw, size);
 		}
 		break;
 		case OLabel:
@@ -6136,7 +6145,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 			op32(ctx, PUSH, pconst(&p, (int)(int_val)dst->t), UNUSED);
 #				endif
 			if (ra->t->kind == HOBJ) hl_get_obj_rt(ra->t); // ensure it's initialized
-			call_native(ctx, hl_to_virtual, size);
+			call_native(ctx, (void*)(uintptr_t)hl_to_virtual, size);
 			store(ctx, dst, PEAX, true);
 		}
 		break;
@@ -6145,7 +6154,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 			hl_enum_construct* c = &dst->t->tenum->constructs[o->p2];
 			int_val args[] = { (int_val)dst->t, o->p2 };
 			int i;
-			call_native_consts(ctx, hl_alloc_enum, args, 2);
+			call_native_consts(ctx, (void*)(uintptr_t)hl_alloc_enum, args, 2);
 			RLOCK(PEAX);
 			for (i = 0;i < c->nparams;i++) {
 				preg* r = fetch(R(o->extra[i]));
@@ -6159,7 +6168,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 		case OEnumAlloc:
 		{
 			int_val args[] = { (int_val)dst->t, o->p2 };
-			call_native_consts(ctx, hl_alloc_enum, args, 2);
+			call_native_consts(ctx, (void*)(uintptr_t)hl_alloc_enum, args, 2);
 			store(ctx, dst, PEAX, true);
 		}
 		break;
@@ -6273,7 +6282,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 			op64(ctx, PUSH, r, UNUSED);
 			op64(ctx, PUSH, fetch(ra), UNUSED);
 #				endif
-			call_native(ctx, get_dynget(dst->t), size);
+			call_native(ctx, (void*)(uintptr_t)get_dynget(dst->t), size);
 			store_result(ctx, dst);
 		}
 		break;
@@ -6288,14 +6297,14 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 				set_native_arg_fpu(ctx, fetch(rb), rb->t->kind == HF32);
 				set_native_arg(ctx, pconst64(&p, hl_hash_gen(hl_get_ustring(m->code, o->p2), true)));
 				set_native_arg(ctx, fetch(dst));
-				call_native(ctx, get_dynset(rb->t), size);
+				call_native(ctx, (void*)(uintptr_t)get_dynset(rb->t), size);
 				break;
 			case HI64:
 				size = begin_native_call(ctx, 3);
 				set_native_arg(ctx, fetch(rb));
 				set_native_arg(ctx, pconst64(&p, hl_hash_gen(hl_get_ustring(m->code, o->p2), true)));
 				set_native_arg(ctx, fetch(dst));
-				call_native(ctx, get_dynset(rb->t), size);
+				call_native(ctx, (void*)(uintptr_t)get_dynset(rb->t), size);
 				break;
 			default:
 				size = begin_native_call(ctx, 4);
@@ -6303,7 +6312,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 				set_native_arg(ctx, pconst64(&p, (int_val)rb->t));
 				set_native_arg(ctx, pconst64(&p, hl_hash_gen(hl_get_ustring(m->code, o->p2), true)));
 				set_native_arg(ctx, fetch(dst));
-				call_native(ctx, get_dynset(rb->t), size);
+				call_native(ctx, (void*)(uintptr_t)get_dynset(rb->t), size);
 				break;
 			}
 #				else
@@ -6313,7 +6322,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 				push_reg(ctx, rb);
 				op32(ctx, PUSH, pconst64(&p, hl_hash_gen(hl_get_ustring(m->code, o->p2), true)), UNUSED);
 				op32(ctx, PUSH, fetch(dst), UNUSED);
-				call_native(ctx, get_dynset(rb->t), size);
+				call_native(ctx, (void*)(uintptr_t)get_dynset(rb->t), size);
 				break;
 			case HF64:
 			case HI64:
@@ -6321,7 +6330,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 				push_reg(ctx, rb);
 				op32(ctx, PUSH, pconst64(&p, hl_hash_gen(hl_get_ustring(m->code, o->p2), true)), UNUSED);
 				op32(ctx, PUSH, fetch(dst), UNUSED);
-				call_native(ctx, get_dynset(rb->t), size);
+				call_native(ctx, (void*)(uintptr_t)get_dynset(rb->t), size);
 				break;
 			default:
 				size = pad_before_call(ctx, HL_WSIZE * 4);
@@ -6329,7 +6338,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 				op32(ctx, PUSH, pconst64(&p, (int_val)rb->t), UNUSED);
 				op32(ctx, PUSH, pconst64(&p, hl_hash_gen(hl_get_ustring(m->code, o->p2), true)), UNUSED);
 				op32(ctx, PUSH, fetch(dst), UNUSED);
-				call_native(ctx, get_dynset(rb->t), size);
+				call_native(ctx, (void*)(uintptr_t)get_dynset(rb->t), size);
 				break;
 			}
 #				endif
@@ -6354,7 +6363,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 
 			preg* treg = alloc_reg(ctx, RCPU);
 			if (!tinf) {
-				call_native(ctx, hl_get_thread, 0);
+				call_native(ctx, (void*)(uintptr_t)hl_get_thread, 0);
 				op64(ctx, MOV, treg, PEAX);
 				offset = (int)(int_val)&tinf->trap_current;
 			}
@@ -6404,12 +6413,12 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 
 			size = begin_native_call(ctx, 1);
 			set_native_arg(ctx, trap);
-			call_native(ctx, setjmp_wrapper, size);
+			call_native(ctx, (void*)(uintptr_t)setjmp_wrapper, size);
 			op64(ctx, TEST, PEAX, PEAX);
 			XJump_small(JZero, jenter);
 			op64(ctx, ADD, PESP, pconst(&p, trap_size));
 			if (!tinf) {
-				call_native(ctx, hl_get_thread, 0);
+				call_native(ctx, (void*)(uintptr_t)hl_get_thread, 0);
 				op64(ctx, MOV, PEAX, pmem(&p, Eax, (int)(int_val)&tinf->exc_value));
 			}
 			else {
@@ -6430,7 +6439,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 			preg* addr, * r;
 			int offset;
 			if (!tinf) {
-				call_native(ctx, hl_get_thread, 0);
+				call_native(ctx, (void*)(uintptr_t)hl_get_thread, 0);
 				addr = PEAX;
 				RLOCK(addr);
 				offset = (int)(int_val)&tinf->trap_current;
@@ -6647,7 +6656,7 @@ int hl_jit_function(jit_ctx* ctx, hl_module* m, hl_function* f) {
 }
 
 static void* get_wrapper(hl_type* t) {
-	return call_jit_hl2c;
+	return (void*)(uintptr_t)call_jit_hl2c;
 }
 
 void hl_jit_patch_method(void* old_fun, void** new_fun_table) {
@@ -6694,7 +6703,7 @@ void* hl_jit_code(jit_ctx* ctx, hl_module* m, int* codesize, hl_debug_infos** de
 	if (!call_jit_c2hl) {
 		call_jit_c2hl = code + ctx->c2hl;
 		call_jit_hl2c = code + ctx->hl2c;
-		hl_setup_callbacks2(callback_c2hl, get_wrapper, 1);
+		hl_setup_callbacks2((void*)(uintptr_t)callback_c2hl, (void*)(uintptr_t)get_wrapper, 1);
 #		ifdef JIT_CUSTOM_LONGJUMP
 		hl_setup_longjump(code + ctx->longjump);
 #		endif
@@ -6752,7 +6761,7 @@ void* hl_jit_code(jit_ctx* ctx, hl_module* m, int* codesize, hl_debug_infos** de
 				// read absolute address from previous module
 				int old_idx = m->hash->functions_hashes[m->functions_indexes[fidx]];
 				if (old_idx < 0)
-					fabs = missing_closure;
+					fabs = (void*)(uintptr_t)missing_closure;
 				else
 					fabs = previous->functions_ptrs[(previous->code->functions + old_idx)->findex];
 			}

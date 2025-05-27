@@ -173,7 +173,30 @@ namespace Cgr
 		glfwPollEvents();
     }
 
-    void CrossWindow::SetVSync(bool enabled)
+	void CrossWindow::SetWindowPosition(int xPos, int yPos)
+	{
+		glfwSetWindowPos(m_WindowHandle, xPos, yPos);
+	}
+
+	void CrossWindow::SetWindowSize(int width, int height)
+	{
+		glfwSetWindowSize(m_WindowHandle, width, height);
+	}
+
+	void CrossWindow::Minimize()
+	{
+		glfwIconifyWindow(m_WindowHandle);
+	}
+
+	void CrossWindow::Maximize()
+	{
+		if (glfwGetWindowAttrib(m_WindowHandle, GLFW_MAXIMIZED))
+			glfwRestoreWindow(m_WindowHandle);
+		else
+			glfwMaximizeWindow(m_WindowHandle);
+	}
+
+	void CrossWindow::SetVSync(bool enabled)
     {
         if (enabled) { glfwSwapInterval(1); }
         else { glfwSwapInterval(0); }

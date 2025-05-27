@@ -123,9 +123,9 @@ namespace Cgr
 
 		style.Alpha = 0.86f;
 		style.DisabledAlpha = 1.0f;
-		style.WindowPadding = ImVec2(12.0f, 12.0f);
+		style.WindowPadding = ImVec2(0.0f, 0.0f);
 		style.WindowRounding = 11.5f;
-		style.WindowBorderSize = 1.0f;
+		style.WindowBorderSize = 2.0f;
 		style.WindowMinSize = ImVec2(20.0f, 20.0f);
 		style.WindowTitleAlign = ImVec2(0.5f, 0.5f);
 		style.WindowMenuButtonPosition = ImGuiDir_Right;
@@ -147,7 +147,6 @@ namespace Cgr
 		style.GrabRounding = 20.0f;
 		style.TabRounding = 0.0f;
 		style.TabBorderSize = 0.0f;
-		style.TabMinWidthForCloseButton = 0.0f;
 		style.ColorButtonPosition = ImGuiDir_Right;
 		style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
 		style.SelectableTextAlign = ImVec2(0.0f, 0.0f);
@@ -176,11 +175,11 @@ namespace Cgr
 		style.Colors[ImGuiCol_SliderGrabActive] = ImVec4(1.0f, 0.34f, 0.5f, 1.0f);
 		style.Colors[ImGuiCol_Button] = ImVec4(0.91f, 0.33f, 0.47f, 1.0f);
 		style.Colors[ImGuiCol_ButtonHovered] = ImVec4(0.95f, 0.6f, 0.78f, 1.0f);
-		style.Colors[ImGuiCol_ButtonActive] = ImVec4(1.0f, 0.35f, 0.57f, 1.0f);
+		style.Colors[ImGuiCol_ButtonActive] = ImVec4(0.5f, 0.5f, 0.5f, 1.0f);
 		style.Colors[ImGuiCol_Header] = ImVec4(0.43f, 0.25f, 0.33f, 1.0f);
 		style.Colors[ImGuiCol_HeaderHovered] = ImVec4(0.9f, 0.34f, 0.47f, 1.0f);
 		style.Colors[ImGuiCol_HeaderActive] = ImVec4(1.0f, 0.3f, 0.48f, 1.0f);
-		style.Colors[ImGuiCol_Separator] = ImVec4(1.0f, 0.3f, 0.46f, 0.53f);
+		style.Colors[ImGuiCol_Separator] = ImVec4(0.1f, 0.1f, 0.1f, 0.53f);
 		style.Colors[ImGuiCol_SeparatorHovered] = ImVec4(1.0f, 0.3f, 0.46f, 0.53f);
 		style.Colors[ImGuiCol_SeparatorActive] = ImVec4(1.0f, 0.3f, 0.46f, 0.53f);
 		style.Colors[ImGuiCol_ResizeGrip] = ImVec4(0.95f, 0.38f, 0.57f, 0.0f);

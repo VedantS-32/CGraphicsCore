@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CGR/Renderer/Model.h"
+#include "CGR/Asset/Asset.h"
 #include "CGR/Asset/AssetMetadata.h"
 
 namespace Cgr

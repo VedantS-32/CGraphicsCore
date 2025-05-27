@@ -108,7 +108,7 @@ namespace Cgr
 					m_Handle = icon->Handle;
 				}
 			}
-			ImGui::ImageButton("FilePreview", reinterpret_cast<void*>(static_cast<uintptr_t>(icon->GetRendererID())), {thumbnailSize, thumbnailSize}, {0, 1}, {1, 0});
+			ImGui::ImageButton("FilePreview", static_cast<uintptr_t>(icon->GetRendererID()), {thumbnailSize, thumbnailSize}, {0, 1}, {1, 0});
 
 			auto assetHandle = assetManager->GetAssetHandleFromRegistry(assetPath);
 			if (assetHandle)
@@ -116,7 +116,7 @@ namespace Cgr
 				if (ImGui::BeginDragDropSource())
 				{
 					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", assetHandle.ValuePtr(), sizeof(uint64_t), ImGuiCond_Once);
-					ImGui::Image(reinterpret_cast<void*>(static_cast<uintptr_t>(icon->GetRendererID())), { dragDropPreviewSize, dragDropPreviewSize }, { 0, 1 }, { 1, 0 });
+					ImGui::Image(static_cast<uintptr_t>(icon->GetRendererID()), { dragDropPreviewSize, dragDropPreviewSize }, { 0, 1 }, { 1, 0 });
 					ImGui::EndDragDropSource();
 				}
 			}
@@ -127,7 +127,7 @@ namespace Cgr
 				{
 					s_Path = relativePath.string();
 					ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", s_Path.c_str(), strlen(s_Path.c_str()) + 1, ImGuiCond_Once);
-					ImGui::Image(reinterpret_cast<void*>(static_cast<uintptr_t>(icon->GetRendererID())), { dragDropPreviewSize, dragDropPreviewSize }, { 0, 1 }, { 1, 0 });
+					ImGui::Image(static_cast<uintptr_t>(icon->GetRendererID()), { dragDropPreviewSize, dragDropPreviewSize }, { 0, 1 }, { 1, 0 });
 					ImGui::EndDragDropSource();
 				}
 			}

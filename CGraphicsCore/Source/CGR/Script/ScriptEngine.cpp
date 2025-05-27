@@ -1,6 +1,9 @@
 #include "CGRpch.h"
 #include "ScriptEngine.h"
 
+#include "CGR/Scene/Components.h"
+
+#include <thread>
 #include <cwchar>
 
 namespace Cgr
@@ -65,6 +68,7 @@ namespace Cgr
 
 		// Initialize HashLink globals
 		hl_global_init();
+        hl_register_thread(nullptr);
 		m_Initialized = true;
 		return true;
 	}
@@ -143,8 +147,86 @@ namespace Cgr
         m_Args.clear();
         m_Args.push_back(nullptr); // null terminator
         hl_sys_init(m_Args.data(), (int)m_Args.size(), nullptr);
-
         return true;
+    }
+
+    void ScriptEngine::CreateEntityInstance(Entity& entity)
+    {
+		hl_thread* thread = hl_thread_current();
+		hl_register_thread(thread);
+
+        auto it = m_CachedObjects.find(entity.GetHandle());
+        if (it != m_CachedObjects.end())
+        {
+			CGR_CORE_WARN("Entity instance already exists");
+			return;
+        }
+        
+        if (!m_Module || !m_Module->code) return;
+
+		auto& script = entity.GetComponent<ScriptComponent>();
+        std::string className = std::format("entity.{}", script.ClassName);
+
+        // Find the Entity class type
+        hl_type* entityType = nullptr;
+        for (int i = 0; i < m_Module->code->ntypes; ++i) {
+            hl_type* type = &m_Module->code->types[i];
+            if (type->kind == HOBJ) {
+                const uchar* typeName = type->obj->name;
+                char* cTypeName = hl_to_utf8(typeName);
+                if (strcmp(cTypeName, className.c_str()) == 0) {
+                    entityType = type;
+                    break;
+                }
+            }
+        }
+
+        vdynamic* instance = hl_alloc_obj(entityType);
+
+        if(entityType == nullptr)
+		{
+			CGR_CORE_ERROR("Failed to find type: {}", className);
+			return;
+		}
+        hl_runtime_obj* rtInfo = entityType->obj->rt;
+
+        int hash = hl_hash_gen(hl_to_utf16("onBegin"), false);
+        hl_field_lookup* lookup = hl_lookup_find(rtInfo->lookup, rtInfo->nlookup, hash);
+
+        if (!lookup || lookup->field_index >= 0)
+            return;// Not a method
+
+        int methodIndex = -lookup->field_index - 1;
+
+        // 4. Allocate new closure
+        vclosure* closure = hl_alloc_closure_void(lookup->t, rtInfo->methods[methodIndex]);
+        vdynamic* args[1] = { instance };
+
+        vdynamic* exc = nullptr;
+        hl_trap_ctx trap;
+        hl_trap(trap, exc, error_handler);
+        hl_dyn_call(closure, args, 1);
+		hl_endtrap(trap);
+
+        goto safeExe;
+
+    error_handler:
+        CGR_CORE_ERROR("Error in script: {0}", hl_to_utf8(reinterpret_cast<const uchar*>(exc->v.bytes)));
+        return;
+
+    safeExe:
+        return;
+        //m_CachedObjects[entity.GetHandle()] = instance;
+    }
+
+    void ScriptEngine::OnEntityBegin(Entity& entity)
+	{
+
+    }
+
+    void ScriptEngine::OnEntityUpdate(Entity& entity, Timestep ts)
+    {
+
     }
 
 
@@ -157,9 +239,7 @@ namespace Cgr
             CGR_CORE_ERROR("Module not loaded");
             return nullptr;
         }
-
-        //PrintAllFunctions(m_Module);
-
+        
         // Convert to HL's internal string format
         uchar* searchName = hl_to_utf16(functionPath.c_str());
         int searchHash = hl_hash_gen(searchName, true);
@@ -228,6 +308,21 @@ namespace Cgr
         return nullptr;
     }
 
+    vclosure* ScriptEngine::GetMethodClosure(hl_obj_field& field)
+    {
+        int findex = field.hashed_name;
+
+        if (findex < 0 || findex >= m_Module->code->nfunctions) {
+            CGR_CORE_ERROR("Invalid function index {}", findex);
+            return nullptr;
+        }
+
+        return hl_alloc_closure_void(
+            field.t,
+            m_Module->functions_ptrs[findex]
+        );
+    }
+
     void ScriptEngine::CallVoidFunction(const std::string& functionPath, const std::vector<vdynamic*>& args)
     {
         vclosure* closure = GetFunction(functionPath);
@@ -252,8 +347,4 @@ namespace Cgr
         // Call the function with no arguments
         hl_dyn_call(closure, nullptr, 0);
     }
-
-	void ScriptEngine::Update(float deltaTime)
-	{
-	}
 }

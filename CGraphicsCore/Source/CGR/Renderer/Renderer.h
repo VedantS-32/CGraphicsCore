@@ -45,6 +45,7 @@ namespace Cgr
 		Ref<VertexArray> m_ModelVertexArray;
 		Ref<VertexArray> m_ENVMapVertexArray;
 		Ref<VertexBuffer> m_ENVMapVertexBuffer;
+		Ref<IndexBuffer> m_ENVMapIndexBuffer;
 
 		Ref<UniformBuffer> m_ModelCommons;
 		Ref<UniformBuffer> m_ModelProps;

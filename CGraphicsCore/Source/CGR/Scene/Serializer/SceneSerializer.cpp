@@ -23,6 +23,17 @@ namespace Cgr
 
 		out << YAML::EndMap; // TagComponent
 
+		if (entity.HasComponent<ScriptComponent>())
+		{
+			out << YAML::Key << "ScriptComponent";
+			out << YAML::BeginMap; // ScriptComponent
+
+			auto& script = entity.GetComponent<ScriptComponent>();
+			out << YAML::Key << "ClassName" << YAML::Value << script.ClassName;
+			out << YAML::Key << "ScriptPath" << YAML::Value << script.ScriptPath;
+			out << YAML::EndMap; // ScriptComponent
+		}
+
 		if (entity.HasComponent<TransformComponent>())
 		{
 			out << YAML::Key << "TransformComponent";
@@ -57,7 +68,7 @@ namespace Cgr
 
     }
 
-    SceneSerializer::SceneSerializer(Ref<Scene> Scene)
+    SceneSerializer::SceneSerializer(Scene* Scene)
         : m_Scene(Scene)
     {
     }
@@ -65,6 +76,12 @@ namespace Cgr
     void SceneSerializer::Serialize(const std::filesystem::path& path)
     {
         const auto& filePath = path;
+		const std::filesystem::path& filePathRoot = path.parent_path();
+        CGR_CORE_INFO("Serialized Scene to: {0}", filePathRoot.string());
+		if (!std::filesystem::exists(filePathRoot))
+		{
+			std::filesystem::create_directories(filePathRoot);
+		}
         const auto assetManager = Application::Get().GetAssetManager();
         YAML::Emitter out;
         out << YAML::BeginMap;
@@ -72,7 +89,7 @@ namespace Cgr
         out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
         m_Scene->GetRegistry().view<entt::entity>().each([&](auto entityID)
             {
-                Entity entity = { entityID, m_Scene.get() };
+                Entity entity = { entityID, m_Scene };
                 if (!entity)
                     return;
 
@@ -112,6 +129,14 @@ namespace Cgr
 					name = tagComponent["Tag"].as<std::string>();
 
 				Entity deserializedEntity = m_Scene->CreateEntity(name);
+
+				auto scriptComponent = entity["ScriptComponent"];
+				if (scriptComponent)
+				{
+					auto& script = deserializedEntity.AddComponent<ScriptComponent>();
+					script.ClassName = scriptComponent["ClassName"].as<std::string>();
+					script.ScriptPath = scriptComponent["ScriptPath"].as<std::string>();
+				}
 
 				auto transformComponent = entity["TransformComponent"];
 				if (transformComponent)

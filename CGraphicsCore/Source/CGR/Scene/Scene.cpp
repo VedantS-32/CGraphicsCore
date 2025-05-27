@@ -2,11 +2,15 @@
 #include "Scene.h"
 
 #include "CGR/Core/Application.h"
+#include "CGR/Asset/AssetManager.h"
 #include "CGR/Renderer/Renderer.h"
 #include "Entity.h"
 #include "Components.h"
 #include "CGR/Core/Timestep.h"
 #include "CGR/Renderer/Camera.h"
+#include "Serializer/SceneSerializer.h"
+#include "CGR/Script/ScriptEngine.h"
+
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Cgr
@@ -14,13 +18,22 @@ namespace Cgr
 	Scene::Scene()
 		: m_Name("Untitled")
 	{
-		m_Renderer = Application::Get().GetRenderer();
+		Initialize();
 	}
-
+	
 	Scene::Scene(const std::string& name)
 		: m_Name(name)
 	{
+		Initialize();
+
+		SceneSerializer serializer(this);
+		serializer.Deserialize(name);
+	}
+
+	void Scene::Initialize()
+	{
 		m_Renderer = Application::Get().GetRenderer();
+		m_ScriptEngine = Application::Get().GetScriptEngine();
 	}
 
     Entity Scene::CreateEntity(const std::string& name)
@@ -39,6 +52,13 @@ namespace Cgr
 
     void Scene::OnUpdate(Timestep ts, Camera& camera)
     {
+		auto scriptedEntities = m_Registry.view<ScriptComponent>();
+		for (auto entity : scriptedEntities)
+		{
+			Entity e = { entity, this };
+			//m_ScriptEngine->OnEntityUpdate(e, ts);
+		}
+
 		auto models = m_Registry.view<ModelComponent, TransformComponent>();
 		for (auto entity : models)
 		{
@@ -56,6 +76,30 @@ namespace Cgr
 	{
 		m_ViewportWidth = width;
 		m_ViewportHeight = height;
+	}
+
+	void Scene::StartRuntime()
+	{
+		SceneSerializer serializer(this);
+		serializer.Serialize(std::format("Temp/EditorSnapShot/{}.cgr", m_Name));
+
+		auto scriptedEntities = m_Registry.view<ScriptComponent>();
+		for (auto entity : scriptedEntities)
+		{
+			Entity e = { entity, this };
+			std::thread t([this, e]() mutable
+				{
+					m_ScriptEngine->CreateEntityInstance(e);
+					m_ScriptEngine->OnEntityBegin(e);
+				});
+			t.detach();
+		}
+	}
+	
+	void Scene::StopRuntime()
+	{
+		SceneSerializer serializer(this);
+		serializer.Deserialize(std::format("Temp/EditorSnapShot/{}.cgr", m_Name));
 	}
 
 	template<typename T>
@@ -93,5 +137,11 @@ namespace Cgr
 				m_Renderer->GetModelPropsUniformBuffer()->SetBlockBinding(model->GetMaterial(currentMatIdx)->GetShader()->GetRendererID());
 			}
 		}
+	}
+
+	template<>
+	CGR_API void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
+	{
+		CGR_CORE_TRACE("Added Script Component");
 	}
 }

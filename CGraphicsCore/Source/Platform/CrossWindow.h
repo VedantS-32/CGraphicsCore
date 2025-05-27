@@ -27,6 +27,12 @@ namespace Cgr
 		virtual bool IsVSync() const override { return m_WindowData.VSync; }
 		virtual void SetEventCallback(const EventCallbackFn& callback) override { m_WindowData.EventCallback = callback; }
 
+		virtual void SetWindowPosition(int xPos, int yPos) override;
+		virtual void SetWindowSize(int width, int height) override;
+
+		virtual void Minimize() override;
+		virtual void Maximize() override;
+
 		virtual void SetVSync(bool enabled) override;
 
 		void Shutdown();

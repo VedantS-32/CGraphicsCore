@@ -19,7 +19,7 @@ namespace Cgr
 			{
 				ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
 				uint32_t textureID = *static_cast<uint32_t*>(attribute->Value);
-				ImGui::ImageButton(reinterpret_cast<void*>(static_cast<uintptr_t>(textureID)), ImVec2(98, 98), { 0, 1 }, { 1, 0 });
+				ImGui::ImageButton("img0", static_cast<uintptr_t>(textureID), ImVec2(98, 98), {0, 1}, {1, 0});
 				ImGui::PopStyleColor();
 			}
 			else if (attribute->Type == VariableType::Float)
