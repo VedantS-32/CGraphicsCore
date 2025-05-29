@@ -12,5 +12,6 @@ namespace Cgr
 
 	private:
 		static Ref<Texture2D> LoadTexture2D(const std::filesystem::path& filePath);
+		static Ref<Texture2D> LoadBinaryTexture2D(const AssetMetadata& metadata);
 	};
 }

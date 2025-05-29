@@ -12,6 +12,7 @@ namespace Cgr
 	using AssetRegistry = std::map<AssetHandle, AssetMetadata>;
 	using AssetMap = std::map<AssetHandle, Ref<Asset>>;
 	using DefaultAssets = std::map<AssetType, AssetHandle>;
+	using QuickAccessHandles = std::unordered_map<std::string, AssetHandle>;
 
 	namespace Utils
 	{
@@ -105,6 +106,7 @@ namespace Cgr
 		bool IsAssetLoaded(AssetHandle handle);
 
 		AssetHandle ImportAsset(const std::filesystem::path& filePath);
+		AssetHandle ImportAsset(AssetMetadata metadata);
 
 		AssetMetadata& GetAssetMetadata(AssetHandle handle);
 		const std::filesystem::path& GetFilePath(AssetHandle handle);
@@ -116,9 +118,24 @@ namespace Cgr
 		AssetHandle GetDefaultAssetHandle(AssetType type) { return m_DefaultAssets[type]; }
 		const DefaultAssets& GetDefaultAssetHandles();
 
+		void AddQuickAccessHandle(const std::string& name, AssetHandle handle) { m_QuickAccessHandles[name] = handle; }
+		AssetHandle GetQuickAccessHandle(const std::string& name)
+		{
+			if (m_QuickAccessHandles.find(name) != m_QuickAccessHandles.end())
+				return m_QuickAccessHandles[name];
+
+			CGR_CORE_ERROR("AssetManager::GetQuickAccessHandle - handle not found for name: {0}", name);
+
+			return UUID::Invalid();
+		}
+		QuickAccessHandles& GetQuickAccessHandles() { return m_QuickAccessHandles; }
+
 	private:
 		AssetRegistry m_AssetRegistry;
 		AssetMap m_LoadedAssets;
 		DefaultAssets m_DefaultAssets;
+
+		// Map for quick access to asset handles by name
+		QuickAccessHandles m_QuickAccessHandles;
 	};
 }

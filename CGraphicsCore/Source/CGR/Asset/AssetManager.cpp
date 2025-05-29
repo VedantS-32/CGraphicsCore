@@ -2,6 +2,7 @@
 #include "AssetManager.h"
 
 #include "AssetImporter.h"
+#include "CGR/UI/BinaryButtons.h"
 
 namespace Cgr
 {
@@ -53,6 +54,46 @@ namespace Cgr
             else
                 CGR_CORE_ERROR("Couldn't import default asset!");
         }
+
+        AssetMetadata metadata;
+		metadata.Type = AssetType::BinaryTexture2D; 
+
+		metadata.Path = "CloseButton";
+		metadata.BinInfo.Data = static_cast<const void*>(BinaryButtons::CloseButtonBinary);
+		metadata.BinInfo.Size = sizeof(BinaryButtons::CloseButtonBinary);
+
+		AssetHandle buttonHandle = ImportAsset(metadata);
+		m_QuickAccessHandles["CloseButton"] = buttonHandle;
+
+        metadata.Path = "MaximizeButton";
+        metadata.BinInfo.Data = static_cast<const void*>(BinaryButtons::MaximizeButtonBinary);
+        metadata.BinInfo.Size = sizeof(BinaryButtons::MaximizeButtonBinary);
+
+        buttonHandle = ImportAsset(metadata);
+        m_QuickAccessHandles["MaximizeButton"] = buttonHandle;
+
+        metadata.Path = "MinimizeButton";
+        metadata.BinInfo.Data = static_cast<const void*>(BinaryButtons::MinimizeButtonBinary);
+        metadata.BinInfo.Size = sizeof(BinaryButtons::MinimizeButtonBinary);
+
+        buttonHandle = ImportAsset(metadata);
+        m_QuickAccessHandles["MinimizeButton"] = buttonHandle;
+
+        metadata.Path = "PlayButton";
+        metadata.BinInfo.Data = static_cast<const void*>(BinaryButtons::PlayButtonBinary);
+        metadata.BinInfo.Size = sizeof(BinaryButtons::PlayButtonBinary);
+
+        buttonHandle = ImportAsset(metadata);
+        m_QuickAccessHandles["PlayButton"] = buttonHandle;
+
+        metadata.Path = "StopButton";
+        metadata.BinInfo.Data = static_cast<const void*>(BinaryButtons::StopButtonBinary);
+        metadata.BinInfo.Size = sizeof(BinaryButtons::StopButtonBinary);
+
+        buttonHandle = ImportAsset(metadata);
+        m_QuickAccessHandles["StopButton"] = buttonHandle;
+
+		CGR_CORE_INFO("Loaded default assets");
     }
 
     AssetType AssetManager::GetAssetType(AssetHandle handle)
@@ -97,6 +138,32 @@ namespace Cgr
             m_LoadedAssets[handle] = asset;
             m_AssetRegistry[handle] = metadata;
         }
+        return handle;
+    }
+
+    AssetHandle AssetManager::ImportAsset(AssetMetadata metadata)
+    {
+        AssetHandle handle; //Generates new handle
+        for (auto& [assetHandle, lmetadata] : m_AssetRegistry)
+        {
+            if (lmetadata.Path == metadata.Path && lmetadata.Type == metadata.Type)
+            {
+                handle = assetHandle;
+                return handle;
+            }
+        }
+
+        CGR_CORE_ASSERT(metadata.Type != AssetType::None);
+
+        Ref<Asset> asset = AssetImporter::ImportAsset(handle, metadata);
+        if (asset)
+        {
+            asset->Handle = handle;
+            asset->Name = metadata.Path.string();
+            m_LoadedAssets[handle] = asset;
+            m_AssetRegistry[handle] = metadata;
+        }
+
         return handle;
     }
 

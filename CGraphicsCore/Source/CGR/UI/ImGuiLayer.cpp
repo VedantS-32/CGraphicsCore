@@ -133,19 +133,21 @@ namespace Cgr
 		style.ChildBorderSize = 0.0f;
 		style.PopupRounding = 0.0f;
 		style.PopupBorderSize = 1.0f;
-		style.FramePadding = ImVec2(10.0f, 1.0f);
-		style.FrameRounding = 5.0f;
+		style.FramePadding = ImVec2(2.0f, 2.0f);
+		style.FrameRounding = 3.5f;
 		style.FrameBorderSize = 0.0f;
-		style.ItemSpacing = ImVec2(3.0f, 3.0f);
+		style.ItemSpacing = ImVec2(2.0f, 2.0f);
 		style.ItemInnerSpacing = ImVec2(5.0f, 5.0f);
 		style.CellPadding = ImVec2(12.0f, 8.0f);
 		style.IndentSpacing = 2.0f;
 		style.ColumnsMinSpacing = 5.0f;
-		style.ScrollbarSize = 19.5f;
+		style.ScrollbarSize = 18.0f;
 		style.ScrollbarRounding = 2.0f;
-		style.GrabMinSize = 8.0f;
-		style.GrabRounding = 20.0f;
-		style.TabRounding = 0.0f;
+		style.GrabMinSize = 14.0f;
+		style.GrabRounding = 2.0f;
+		style.TabRounding = 2.0f;
+		style.TabBarBorderSize = 1.0f;
+		style.TabBarOverlineSize = 2.0f;
 		style.TabBorderSize = 0.0f;
 		style.ColorButtonPosition = ImGuiDir_Right;
 		style.ButtonTextAlign = ImVec2(0.5f, 0.5f);
@@ -187,9 +189,10 @@ namespace Cgr
 		style.Colors[ImGuiCol_ResizeGripActive] = ImVec4(1.0f, 0.3f, 0.46f, 1.0f);
 		style.Colors[ImGuiCol_Tab] = ImVec4(0.43f, 0.25f, 0.33f, 1.0f);
 		style.Colors[ImGuiCol_TabHovered] = ImVec4(0.89f, 0.34f, 0.47f, 1.0f);
-		style.Colors[ImGuiCol_TabActive] = ImVec4(1.0f, 0.3f, 0.48f, 1.0f);
-		style.Colors[ImGuiCol_TabUnfocused] = ImVec4(0.0f, 0.45f, 1.0f, 0.0f);
-		style.Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.13f, 0.25f, 0.42f, 0.0f);
+		style.Colors[ImGuiCol_TabActive] = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+		style.Colors[ImGuiCol_TabUnfocused] = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+		style.Colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.25f, 0.25f, 0.25f, 1.0f);
+		style.Colors[ImGuiCol_TabSelectedOverline] = ImVec4(0.72f, 0.78f, 0.51f, 1.0f);
 		style.Colors[ImGuiCol_PlotLines] = ImVec4(0.29f, 0.29f, 0.29f, 1.0f);
 		style.Colors[ImGuiCol_PlotLinesHovered] = ImVec4(0.88f, 0.46f, 0.6f, 1.0f);
 		style.Colors[ImGuiCol_PlotHistogram] = ImVec4(0.51f, 0.71f, 0.77f, 1.0f);
@@ -205,6 +208,5 @@ namespace Cgr
 		style.Colors[ImGuiCol_NavWindowingHighlight] = ImVec4(1.0f, 1.0f, 1.0f, 0.69f);
 		style.Colors[ImGuiCol_NavWindowingDimBg] = ImVec4(0.8f, 0.8f, 0.8f, 0.2f);
 		style.Colors[ImGuiCol_ModalWindowDimBg] = ImVec4(0.8f, 0.8f, 0.8f, 0.34f);
-
 	}
 }

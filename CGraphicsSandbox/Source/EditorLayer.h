@@ -36,11 +36,14 @@ namespace Cgr
 		void StartRuntime();
 		void StopRuntime();
 
-		void ShowTitleBar();
-
 	private:
 		Ref<Framebuffer> m_Framebuffer;
 		Ref<Texture2D> m_Logo;
+		Ref<Texture2D> m_CloseButton;
+		Ref<Texture2D> m_MaximizeButton;
+		Ref<Texture2D> m_MinimizeButton;
+		Ref<Texture2D> m_PlayButton;
+		Ref<Texture2D> m_StopButton;
 		Camera m_Camera;
 
 		AssetManager* m_AssetManager;

@@ -35,17 +35,16 @@ namespace Cgr
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
 			m_SelectionContext = {};
 
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 4.0f, 4.0f });
 		if (ImGui::BeginPopupContextWindow(0, 1 | ImGuiPopupFlags_NoOpenOverItems))
         {
-            ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 0, 32 });
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 8, 8 });
 
 			if (ImGui::MenuItem("Create Empty Entity"))
 				m_Context->CreateEntity("Empty Entity");
 
-            ImGui::PopStyleVar(2);
 			ImGui::EndPopup();
 		}
+        ImGui::PopStyleVar();
 
 		ImGui::End();
 
@@ -68,11 +67,13 @@ namespace Cgr
 		
 		ImGuiTreeNodeFlags flags = ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 		flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 6.0f, 6.0f });
 		bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, tag.c_str());
 		if (ImGui::IsItemClicked())
 		{
 			m_SelectionContext = entity;
 		}
+        ImGui::PopStyleVar();
 
 		bool entityDeleted = false;
 		if (ImGui::BeginPopupContextItem())
@@ -109,7 +110,9 @@ namespace Cgr
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 0, 0 });
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{ 2.0f, 2.0f });
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 6.0f, 2.0f });
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 2.0f);
 
 		ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{ 0.85f, 0.1f, 0.2f, 1.0f });
 		ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{ 0.95f, 0.2f, 0.30f, 1.0f });
@@ -152,7 +155,7 @@ namespace Cgr
 		ImGui::DragFloat("##Z", &values.z, 0.1f);
 		ImGui::PopItemWidth();
 
-		ImGui::PopStyleVar();
+		ImGui::PopStyleVar(3);
 
 		ImGui::Columns(1);
 
@@ -175,11 +178,11 @@ namespace Cgr
 
             bool opened = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
 
-            float padding = 4.0f;
+            auto padding = ImGui::GetStyle().ScrollbarSize + ImGui::GetStyle().FramePadding.x * 2.0f;
             float buttonSize = lineHeight;
 
             ImGui::SameLine();
-            ImGui::SetCursorPosX(contentRegionAvailable.x - padding * 2.0f);
+            ImGui::SetCursorPosX(contentRegionAvailable.x - padding);
 
             if (ImGui::Button("-", ImVec2{ buttonSize, buttonSize }))
             {
@@ -209,6 +212,8 @@ namespace Cgr
 
 	void SceneGraphPanel::DrawComponents(Entity entity)
 	{
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+
 		if (entity.HasComponent<TagComponent>())
 		{
 			auto& tag = entity.GetComponent<TagComponent>().Tag;
@@ -222,18 +227,24 @@ namespace Cgr
 				tag = std::string(buffer);
 			}
 		}
-
-		ImGui::SameLine();
-        ImGui::PushItemWidth(-1);
-        if (ImGui::Button("||"))
-            AddScriptPanel::OpenAddScriptPanel();
-
+        
         ImGui::SameLine();
-		ImGui::PushItemWidth(-1);
+		ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 134.0f);
 
 		if (ImGui::Button("Add Component"))
 			ImGui::OpenPopup("Add Component");
 
+        ImGui::SameLine();
+        ImGui::SetCursorPosX(ImGui::GetWindowWidth() - 157.0f);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 6.0f, 4.0f});
+        if (ImGui::Button("#"))
+            AddScriptPanel::OpenAddScriptPanel();
+        ImGui::PopStyleVar();
+
+        ImGui::PopStyleVar();
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 6.0f, 6.0f });
 		if (ImGui::BeginPopup("Add Component"))
 		{
 			if (ImGui::MenuItem("Model"))
@@ -244,6 +255,7 @@ namespace Cgr
 
 			ImGui::EndPopup();
 		}
+        ImGui::PopStyleVar();
 
 		std::string scriptPath;
         if (AddScriptPanel::OnImGuiRender(scriptPath))
@@ -252,9 +264,6 @@ namespace Cgr
 			script.ScriptPath = scriptPath;
 			script.ClassName = std::filesystem::path(scriptPath).stem().string();
         }
-
-		ImGui::PopItemWidth();
-		ImGui::PopItemWidth();
 
         ImGui::Spacing();
         ImGui::Spacing();
@@ -361,7 +370,7 @@ namespace Cgr
                         auto& shaderName = material->GetShader()->Name;
                         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
                         ImGui::Text("Shader");
-                        ImGui::ImageButton(shaderName.c_str(), static_cast<uintptr_t>(iconMap.at("Shader")->GetRendererID()), { 98, 98 }, { 0, 1 }, { 1, 0 });
+                        ImGui::ImageButton(std::format("{}.glsl",shaderName).c_str(), static_cast<uintptr_t>(iconMap.at("Shader")->GetRendererID()), {98, 98}, {0, 1}, {1, 0});
                         ImGui::PopStyleColor();
 
                         if (ImGui::BeginDragDropTarget())

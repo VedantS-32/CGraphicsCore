@@ -14,6 +14,7 @@ namespace Cgr
     static std::map<AssetType, AssetImportFunction> s_AssetImportFunctions =
     {
         { AssetType::Texture2D, TextureImporter::ImportTexture2D },
+        { AssetType::BinaryTexture2D, TextureImporter::ImportTexture2D },
         { AssetType::Shader, ShaderImporter::ImportShader },
         { AssetType::Material, MaterialImporter::ImportMaterial },
         { AssetType::Model, ModelImporter::ImportModel },

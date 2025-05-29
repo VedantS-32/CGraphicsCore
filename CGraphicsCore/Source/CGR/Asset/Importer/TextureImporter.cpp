@@ -10,7 +10,21 @@ namespace Cgr
 {
 	Ref<Texture2D> TextureImporter::ImportTexture2D(AssetHandle handle, const AssetMetadata& metadata)
     {
-        return LoadTexture2D(metadata.Path);
+		switch (metadata.Type)
+		{
+		case Cgr::AssetType::Texture2D:
+			return LoadTexture2D(metadata.Path);
+			break;
+		case Cgr::AssetType::BinaryTexture2D:
+			return LoadBinaryTexture2D(metadata);
+			break;
+		default:
+			return nullptr;
+			break;
+		}
+
+		CGR_CORE_ASSERT(false, ("Unsupported asset type for texture import: {0}", Utils::GetStringFromTypeEnum(metadata.Type)));
+		return nullptr;
     }
 
     Ref<Texture2D> TextureImporter::LoadTexture2D(const std::filesystem::path& filePath)
@@ -52,4 +66,21 @@ namespace Cgr
 
 		return texture;
     }
+
+	Ref<Texture2D> TextureImporter::LoadBinaryTexture2D(const AssetMetadata& metadata)
+	{
+		auto name = metadata.Path.string();
+
+		TextureSpecification spec;
+		spec.Width = 40;
+		spec.Height = 32;
+		spec.Format = ImageFormat::RGBA8;
+
+		auto texture = Texture2D::Create(spec, metadata.BinInfo.Data);
+		texture->SetName(name);
+
+		CGR_CORE_TRACE("Imported BinaryTexture2D asset: {0}", name);
+
+		return texture;
+	}
 }

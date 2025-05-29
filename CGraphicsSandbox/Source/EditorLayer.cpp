@@ -35,10 +35,8 @@ namespace Cgr
     static void HandleWindowDragging()
     {
         static glm::ivec2 dragOffset = { 0, 0 };
-
         ImGuiIO& io = ImGui::GetIO();
         ImVec2 mousePos = io.MousePos;
-
 
         // Get the current window (should be called within a window context)
         if (!ImGui::GetCurrentWindow()) return;
@@ -51,30 +49,33 @@ namespace Cgr
 
         // Check if mouse is in draggable area
         bool mouseInDraggableArea = draggableArea.Contains(mousePos);
+        bool IsAnyItemHovered = ImGui::IsAnyItemHovered();
+        bool IsAnyItemActive = ImGui::IsAnyItemActive();
+        bool IsAnyPopupOpen = ImGui::IsPopupOpen("", ImGuiPopupFlags_AnyPopupId | ImGuiPopupFlags_AnyPopupLevel);
 
-        // Handle drag start
-        if (mouseInDraggableArea && ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+        // Only handle dragging if:
+        // 1. Mouse is in draggable area
+        // 2. No UI items are being interacted with
+        // 3. No popups are open
+        if (mouseInDraggableArea && !IsAnyItemHovered && !IsAnyItemActive && !IsAnyPopupOpen)
         {
-            if (!ImGui::IsAnyItemHovered() && !ImGui::IsAnyItemActive())
+            // Handle drag start
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
             {
                 dragOffset = { (int)(mousePos.x - windowPos.x), (int)(mousePos.y - windowPos.y) };
+                s_IsDragging = true;
             }
         }
 
-        // Handle dragging
-        if (s_IsDragging)
+        // Handle dragging (continue dragging even if mouse moves outside draggable area)
+        if (s_IsDragging && ImGui::IsMouseDown(ImGuiMouseButton_Left) && !IsAnyPopupOpen)
         {
             glm::ivec2 newPos = { mousePos.x - dragOffset.x, mousePos.y - dragOffset.y };
             const_cast<Window&>(Application::Get().GetWindow()).SetWindowPosition(newPos.x, newPos.y);
         }
-
-        if (ImGui::IsMouseDown(ImGuiMouseButton_Left))
-        {
-            s_IsDragging = true;
-        }
         else
         {
-			s_IsDragging = false;
+            s_IsDragging = false;
         }
     }
 
@@ -100,6 +101,12 @@ namespace Cgr
 
         handle = m_AssetManager->ImportAsset("Content/Icon/CStell.png");
 		m_Logo = m_AssetManager->GetAsset<Texture2D>(handle);
+
+		m_CloseButton = m_AssetManager->GetAsset<Texture2D>(m_AssetManager->GetQuickAccessHandle("CloseButton"));
+		m_MaximizeButton = m_AssetManager->GetAsset<Texture2D>(m_AssetManager->GetQuickAccessHandle("MaximizeButton"));
+		m_MinimizeButton = m_AssetManager->GetAsset<Texture2D>(m_AssetManager->GetQuickAccessHandle("MinimizeButton"));
+		m_PlayButton = m_AssetManager->GetAsset<Texture2D>(m_AssetManager->GetQuickAccessHandle("PlayButton"));
+		m_StopButton = m_AssetManager->GetAsset<Texture2D>(m_AssetManager->GetQuickAccessHandle("StopButton"));
 
         FramebufferSpecification fbSpec;
         fbSpec.Attachments = { FramebufferTextureFormat::RGBA8, FramebufferTextureFormat::RED_INTEGER, FramebufferTextureFormat::Depth };
@@ -189,7 +196,7 @@ namespace Cgr
         ImGui::SetNextWindowViewport(viewport->ID);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize;
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
         window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoScrollbar;
 
         if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
@@ -229,7 +236,7 @@ namespace Cgr
 
                 // Split center into editor and content browser
                 ImGuiID dock_id_editor;
-                ImGuiID dock_id_content = ImGui::DockBuilderSplitNode(dock_id_center, ImGuiDir_Down, 0.25f, &dock_id_content, &dock_id_editor);
+                ImGuiID dock_id_content = ImGui::DockBuilderSplitNode(dock_id_center, ImGuiDir_Down, 0.3f, &dock_id_content, &dock_id_editor);
 
                 // Split right sidebar into scene graph and properties
                 ImGuiID dock_id_scene;
@@ -241,6 +248,7 @@ namespace Cgr
                 // Dock windows to specific areas
                 ImGui::DockBuilderDockWindow("Toolbar", dock_id_toolbar);
                 ImGui::DockBuilderDockWindow("Viewport", dock_id_editor);
+                ImGui::DockBuilderDockWindow("World Settings", dock_id_scene);
                 ImGui::DockBuilderDockWindow("Scene Graph", dock_id_scene);
                 ImGui::DockBuilderDockWindow("Properties", dock_id_properties);
                 ImGui::DockBuilderDockWindow("Content Browser", dock_id_content);
@@ -271,13 +279,31 @@ namespace Cgr
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.12f, 0.12f, 0.12f, 1.0f));
             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
 
-            if (ImGui::Button("File", ImVec2(50.0f, 25.0f))) {}
+            if (ImGui::Button("File", ImVec2(50.0f, 25.0f)))
+            {
+                ImGui::OpenPopup("FileMenu");
+            }
             ImGui::SameLine();
             if (ImGui::Button("Edit", ImVec2(50.0f, 25.0f))) {}
             ImGui::SameLine();
             if (ImGui::Button("View", ImVec2(50.0f, 25.0f))) {}
             ImGui::SameLine();
             if (ImGui::Button("Tools", ImVec2(50.0f, 25.0f))) {}
+
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 6.0f, 6.0f });
+            if (ImGui::BeginPopup("FileMenu"))
+            {
+                if (ImGui::MenuItem("New", "Ctrl+N"))
+                    NewScene();
+                if (ImGui::MenuItem("Open", "Ctrl+O"))
+                    OpenScene();
+                if (ImGui::MenuItem("Save", "Ctrl+Shift+S"))
+                    SaveSceneAs();
+                if (ImGui::MenuItem("Exit"))
+                    Application::Get().Close();
+                ImGui::EndPopup();
+            }
+            ImGui::PopStyleVar();
 
             ImGui::PopStyleColor(2);
             ImGui::PopStyleVar(2);
@@ -295,9 +321,9 @@ namespace Cgr
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, playButtonHoveredColor);
         ImGui::PushStyleColor(ImGuiCol_ButtonActive, playButtonActiveColor);
 
-		ImGui::SetCursorPosY(ImGui::GetWindowHeight() / 5.0f); // Center vertically
+		ImGui::SetCursorPosY(ImGui::GetWindowHeight() / 6.0f); // Center vertically
 
-        if (ImGui::Button(m_IsRuntime ? "[ ] Stop" : "|> Play", ImVec2(64.0f, 36.0f)))
+        if (ImGui::ImageButton("Play", m_IsRuntime ? m_StopButton->GetRendererID() : m_PlayButton->GetRendererID(), ImVec2(40.0f, 32.0f)))
         {
             if (!m_IsRuntime)
             {
@@ -317,34 +343,38 @@ namespace Cgr
         ImGui::PopStyleColor(3); // For play button colors
 
         // Window controls on the right
-        float windowControlsWidth = 128.0f;
+        float windowControlsWidth = 120.0f;
         ImGui::SameLine(ImGui::GetWindowWidth() - windowControlsWidth);
 
         // Minimize, Maximize, Close buttons
 		ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 1.0f);
+		ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0.0f, 0.0f));
+		ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0.0f, 0.0f));
         ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 0.0f));
         ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.3f, 0.3f, 0.3f, 1.0f));
 
-        if (ImGui::Button("_", ImVec2(40.0f, 30.0f)))
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.24f, 0.63f, 0.82f, 1.0f));
+        if (ImGui::ImageButton("Minimize", m_MinimizeButton->GetRendererID(), ImVec2(40.0f, 32.0f)))
         {
-            // Minimize window
 			const_cast<Window&>(Application::Get().GetWindow()).Minimize();
         }
         ImGui::SameLine();
-        if (ImGui::Button("[ ]", ImVec2(40.0f, 30.0f)))
+        if (ImGui::ImageButton("Maximize", m_MaximizeButton->GetRendererID(), ImVec2(40.0f, 32.0f)))
         {
-            // Maximize/restore window
-
 			const_cast<Window&>(Application::Get().GetWindow()).Maximize();
         }
+        ImGui::PopStyleColor();
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.8f, 0.2f, 0.2f, 1.0f));
-        if (ImGui::Button("X", ImVec2(40.0f, 30.0f)))
+
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.87f, 0.33f, 0.28f, 1.0f));
+        if (ImGui::ImageButton("Close", m_CloseButton->GetRendererID(), ImVec2(40.0f, 32.0f)))
         {
             Application::Get().Close();
         }
-        ImGui::PopStyleVar();
-        ImGui::PopStyleColor(3); // For window control colors
+        ImGui::PopStyleColor();
+
+        ImGui::PopStyleVar(3);
+        ImGui::PopStyleColor(2); // For window control colors
 
         // Enable window dragging for the titlebar
         if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
@@ -440,48 +470,35 @@ namespace Cgr
         }
         ImGui::End();
 
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow();
 
-        //ImGui::SameLine();
+        ImGui::Begin("World Settings");
+        if (ImGui::Button("Reload Script!"))
+        {
+            OnReloadButtonClicked();
+        }
+        if (ImGui::Button("Call Haxe Function!"))
+        {
+            OnCallHaxeFuncButtonClicked();
+        }
+        auto& pos = m_Camera.GetPosition();
+        auto txt = std::format("Camera position x:{}, y:{}, z:{}", pos.x, pos.y, pos.z);
+        ImGui::Text(txt.c_str());
+        if (ImGui::ColorEdit4("Clear color", glm::value_ptr(m_ClearColor)))
+            RenderCommand::SetClearColor(m_ClearColor);
+        if (ImGui::ColorEdit3("Ambient Light", glm::value_ptr(m_Renderer->m_AmbientLight)))
+            m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_AmbientLight));
+        if (ImGui::DragFloat3("Light Position", glm::value_ptr(m_Renderer->m_LightPosition)))
+            m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_LightPosition));
+        
+        m_ReflectionSystem->ReflectClass("OpenGLSkybox");
+        m_ReflectionSystem->ReflectClass("Camera");
+        m_ReflectionSystem->ReflectClass("OpenGLTexture");
 
-        //ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{ 0, 0 });
-        //ImGui::Begin("Viewport");
-        //
-        //ImGui::End();
-        //ImGui::PopStyleVar();
-
-        //ImGui::Begin("World Settings");
-        //if (ImGui::Button("Reload Script!"))
-        //{
-        //    OnReloadButtonClicked();
-        //}
-        //if (ImGui::Button("Call Haxe Function!"))
-        //{
-        //    OnCallHaxeFuncButtonClicked();
-        //}
-        //auto& pos = m_Camera.GetPosition();
-        //auto txt = std::format("Camera position x:{}, y:{}, z:{}", pos.x, pos.y, pos.z);
-        //ImGui::Text(txt.c_str());
-        //if (ImGui::ColorEdit4("Clear color", glm::value_ptr(m_ClearColor)))
-        //    RenderCommand::SetClearColor(m_ClearColor);
-        //if (ImGui::ColorEdit3("Ambient Light", glm::value_ptr(m_Renderer->m_AmbientLight)))
-        //    m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_AmbientLight));
-        //if (ImGui::DragFloat3("Light Position", glm::value_ptr(m_Renderer->m_LightPosition)))
-        //    m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_LightPosition));
-        //
-        //m_ReflectionSystem->ReflectClass("OpenGLSkybox");
-        //m_ReflectionSystem->ReflectClass("Camera");
-        //m_ReflectionSystem->ReflectClass("OpenGLTexture");
-        ////m_Camera.UpdateProjectionMatrix();
-
-        //ImGui::End();
+        ImGui::End();
 
         m_ContentBrowserPanel->OnImGuiRender();
         m_SceneGraphPanel->OnImGuiRender();
-
-        //ImGui::End();
-        //ImGui::PopStyleVar();
-        //ImGui::End();
     }
 
 	void EditorLayer::OnEvent(Event& e)
@@ -563,8 +580,8 @@ namespace Cgr
     {
         if (e.GetMouseButton() == Mouse::CGR_BUTTON_LEFT)
         {
-            //if (m_ViewportHovered && !ImGuizmo::IsOver() && !ImGuizmo::IsUsing() && !Input::IsKeyPressed(Key::CGR_KEY_LEFT_ALT))
-            //    m_SceneGraphPanel->SetSelectedEntity(m_HoveredEntity);
+            if (m_ViewportHovered && !ImGuizmo::IsOver() && !ImGuizmo::IsUsing() && !Input::IsKeyPressed(Key::CGR_KEY_LEFT_ALT))
+                m_SceneGraphPanel->SetSelectedEntity(m_HoveredEntity);
         }
 
         return false;
