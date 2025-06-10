@@ -111,47 +111,51 @@ namespace Cgr
 
         auto& parameters = m_Material->GetAllVariables();
         auto attribute = data["Attributes"];
+        
         for (auto& parameter : parameters)
         {
-            switch (parameter->GetType())
+            if(attribute[parameter->GetName()].IsDefined())
             {
-            case ShaderDataType::None:
-                break;
-            case ShaderDataType::Float:
-                *static_cast<float*>(parameter->GetValue()) = attribute[parameter->GetName()].as<float>();
-                break;
-            case ShaderDataType::Float2:
-                *static_cast<glm::vec2*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::vec2>();
-                break;
-            case ShaderDataType::Float3:
-                *static_cast<glm::vec3*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::vec3>();
-                break;
-            case ShaderDataType::Float4:
-                *static_cast<glm::vec4*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::vec4>();
-                break;
-            case ShaderDataType::Mat3:
-                //out << YAML::Key << param->GetName() << YAML::Value << static_cast<float*>(param->GetValue()));
-                break;
-            case ShaderDataType::Mat4:
-                //out << YAML::Key << param->GetName() << YAML::Value << static_cast<float*>(param->GetValue()));
-                break;
-            case ShaderDataType::Int:
-                *static_cast<int*>(parameter->GetValue()) = attribute[parameter->GetName()].as<int>();
-                break;
-            case ShaderDataType::Int2:
-                *static_cast<glm::ivec2*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::ivec2>();
-                break;
-            case ShaderDataType::Int3:
-                *static_cast<glm::ivec3*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::ivec3>();
-                break;
-            case ShaderDataType::Int4:
-                *static_cast<glm::ivec4*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::ivec4>();
-                break;
-            case ShaderDataType::Bool:
-                *static_cast<bool*>(parameter->GetValue()) = attribute[parameter->GetName()].as<bool>();
-                break;
-            default:
-                break;
+                switch (parameter->GetType())
+                {
+                case ShaderDataType::None:
+                    break;
+                case ShaderDataType::Float:
+                    *static_cast<float*>(parameter->GetValue()) = attribute[parameter->GetName()].as<float>();
+                    break;
+                case ShaderDataType::Float2:
+                    *static_cast<glm::vec2*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::vec2>();
+                    break;
+                case ShaderDataType::Float3:
+                    *static_cast<glm::vec3*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::vec3>();
+                    break;
+                case ShaderDataType::Float4:
+                    *static_cast<glm::vec4*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::vec4>();
+                    break;
+                case ShaderDataType::Mat3:
+                    //out << YAML::Key << param->GetName() << YAML::Value << static_cast<float*>(param->GetValue()));
+                    break;
+                case ShaderDataType::Mat4:
+                    //out << YAML::Key << param->GetName() << YAML::Value << static_cast<float*>(param->GetValue()));
+                    break;
+                case ShaderDataType::Int:
+                    *static_cast<int*>(parameter->GetValue()) = attribute[parameter->GetName()].as<int>();
+                    break;
+                case ShaderDataType::Int2:
+                    *static_cast<glm::ivec2*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::ivec2>();
+                    break;
+                case ShaderDataType::Int3:
+                    *static_cast<glm::ivec3*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::ivec3>();
+                    break;
+                case ShaderDataType::Int4:
+                    *static_cast<glm::ivec4*>(parameter->GetValue()) = attribute[parameter->GetName()].as<glm::ivec4>();
+                    break;
+                case ShaderDataType::Bool:
+                    *static_cast<bool*>(parameter->GetValue()) = attribute[parameter->GetName()].as<bool>();
+                    break;
+                default:
+                    break;
+                }
             }
         }
 

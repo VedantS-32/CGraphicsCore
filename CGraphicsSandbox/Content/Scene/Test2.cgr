@@ -1,14 +1,20 @@
 Scene: Untitled
 Entities:
-  - Entity: 0
+  - Entity: 1
     TagComponent:
-      Tag: FirstEntity
-    ScriptComponent:
-      ClassName: Matter
-      ScriptPath: Content\Script\src\entity\Matter.hx
+      Tag: SecondEntity
     TransformComponent:
       Translation: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    ModelComponent:
+      Model: Content/Model/Pot.fbx
+  - Entity: 0
+    TagComponent:
+      Tag: FirstEntity
+    TransformComponent:
+      Translation: [0, 0, -3.2576861]
+      Rotation: [0, 0, 0]
+      Scale: [100, 100, 1]
     ModelComponent:
       Model: Content/Model/CStellCube.csmesh

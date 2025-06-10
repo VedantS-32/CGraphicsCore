@@ -27,6 +27,7 @@ namespace Cgr
 		virtual ~Skybox() = default;
 
 		virtual void Bind() = 0;
+		virtual void Bind(uint32_t slot) = 0;
 		virtual void UnBind() = 0;
 
 		virtual std::vector<Ref<ShaderVariable>>& GetAllVariables() = 0;

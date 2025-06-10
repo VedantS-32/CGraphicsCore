@@ -366,7 +366,7 @@ namespace Cgr
 			//CGR_CORE_TRACE("Variable name: {0}, Type: {1}, Offset: {2}", varName, type, offset);
 
 			if (material->HasVariable(varName))
-				return;
+				continue;
 
 			switch (type)
 			{

@@ -159,6 +159,7 @@ namespace Cgr
         m_Renderer->OnUpdate(m_Camera);
 
         // Drawing models
+        Model::ResetTriangleCount();
         m_Renderer->BindModelVertexArray();
         m_ActiveScene->OnUpdate(ts, m_Camera);
 
@@ -473,6 +474,8 @@ namespace Cgr
 		//ImGui::ShowDemoWindow();
 
         ImGui::Begin("World Settings");
+        ImGui::Text(std::format("FPS: {:.2f}", ImGui::GetIO().Framerate).c_str());
+        ImGui::Text(std::format("Triangle Count: {}", Model::GetTriangleCount()).c_str());
         if (ImGui::Button("Reload Script!"))
         {
             OnReloadButtonClicked();
@@ -491,7 +494,7 @@ namespace Cgr
         if (ImGui::DragFloat3("Light Position", glm::value_ptr(m_Renderer->m_LightPosition)))
             m_Renderer->m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_Renderer->m_LightPosition));
         
-        m_ReflectionSystem->ReflectClass("OpenGLSkybox");
+        m_ReflectionSystem->ReflectClass("Skybox");
         m_ReflectionSystem->ReflectClass("Camera");
         m_ReflectionSystem->ReflectClass("OpenGLTexture");
 
@@ -632,5 +635,4 @@ namespace Cgr
             serializer.Serialize(filepath);
         }
     }
-
 }

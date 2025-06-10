@@ -48,6 +48,9 @@ namespace Cgr
 		Model(const std::string& modelPath);
 		~Model() {}
 
+		static uint64_t GetTriangleCount();
+		static void ResetTriangleCount();
+
 		const std::string& GetPath() { return m_ModelPath; }
 		void SetPath(const std::string& path) { m_ModelPath = path; }
 		glm::mat4& GetModelMatrix() { return m_ModelMatrix; }

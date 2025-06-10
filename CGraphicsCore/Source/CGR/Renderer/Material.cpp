@@ -24,6 +24,7 @@ namespace Cgr
     void Material::SetShader(Ref<Shader> shader)
     {
         m_Shader = shader;
+        m_ShaderVariables.clear();
         m_Shader->ExtractSSBOParameters(this);
     }
 

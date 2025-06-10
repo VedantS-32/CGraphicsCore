@@ -9,6 +9,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
+uint64_t g_TriangleCount = 0;
+
 namespace Cgr
 {
 	static Mesh processMesh(aiMesh* mesh, const aiScene* scene)
@@ -125,6 +127,16 @@ namespace Cgr
 		loadMeshAsset(*this, modelPath);
 	}
 
+	uint64_t Model::GetTriangleCount()
+	{
+		return g_TriangleCount;
+	}
+
+	void Model::ResetTriangleCount()
+	{
+		g_TriangleCount = 0;
+	}
+
 	void Model::AddMaterial(Ref<Material> material)
 	{
 		m_Materials.emplace_back(material);
@@ -156,6 +168,7 @@ namespace Cgr
 				auto material = GetMaterial(currentMatIdx);
 				auto shader = material->GetShader();
 				shader->Bind();
+				shader->Set1i("uSkybox", 15);
 				uint32_t i = 0;
 				for (auto& texture : material->GetAllTextures())
 				{
@@ -165,7 +178,7 @@ namespace Cgr
 				}
 				material->UpdateSSBOParameters(SSBO);
 			}
-
+			g_TriangleCount += mesh.GetIndexCount();
 			RenderCommand::DrawIndexed(mesh.GetIndexCount());
 		}
 	}

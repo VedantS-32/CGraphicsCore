@@ -3,12 +3,13 @@
 #include <unordered_map>
 #include <any>
 #include <functional>
-#include <iostream>
 
 #ifndef _MSC_VER
 	#include <cxxabi.h>
 	#define CGR_NEEDS_DEMANGLE
 #endif
+
+#include "Log.h"
 
 namespace Cgr
 {
@@ -89,8 +90,8 @@ namespace Cgr
 				return VariableType::String;
 			if (typeName == "double") return VariableType::Double;
 			if (typeName == "glm::vec2") return VariableType::Float2;
-			if (typeName == "glm::vec3") return VariableType::Float3;
-			if (typeName == "glm::vec4") return VariableType::Float4;
+			if (typeName == "struct glm::vec<3,float,0>") return VariableType::Float3;
+			if (typeName == "struct glm::vec<4,float,0>") return VariableType::Float4;
 			if (typeName == "glm::mat3") return VariableType::Mat3;
 			if (typeName == "glm::mat4") return VariableType::Mat4;
 			if (typeName == "glm::ivec2") return VariableType::Int2;
@@ -100,7 +101,7 @@ namespace Cgr
 			if (typeName == "char*") return VariableType::CharPtr;
 			if (typeName == "char const*") return VariableType::ConstCharPtr;
 
-			std::cout << typeName << std::endl;
+			CGR_CORE_ERROR("Couldn't reflect the variable: {0}. Please change typename in CGR/Core/Reflection.h", variable.type().name());
 
 			return VariableType::None;  // Unknown type
 		}

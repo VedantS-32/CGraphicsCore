@@ -6,10 +6,26 @@
 #include "Shader.h"
 #include "Model.h"
 
+#include "CGR/Core/Reflection.h"
+
 namespace Cgr
 {
 	class Camera;
 	class Skybox;
+
+	struct CGR_API SkyboxProps
+	{
+		CLASS(Skybox);
+
+		SkyboxProps();
+
+		float Intensity = 1.0f;
+		float Rotation = 0.0f;
+		glm::vec3 Tint = glm::vec3(1.0f);
+		glm::vec3 ReflectionRotation = glm::vec3(0.0f);
+
+		glm::mat4 RotationMatrix = glm::mat4(1.0f);
+	};
 
 	class CGR_API Renderer
 	{
@@ -18,9 +34,12 @@ namespace Cgr
 		
 		void Init();
 
+		static Renderer* Get();
+
 		//Always call Renderer::OnUpdate before calling ActiveScene::OnUpdate, as it updates shader buffer
 		void OnUpdate(Camera& camera);
 		void RenderSkybox(Camera& camera);
+		void BindSkybox();
 		void SetShaderBuffer(Ref<Shader> shader);
 		Ref<UniformBuffer> GetModelCommonsUniformBuffer() { return m_ModelCommons; }
 		Ref<UniformBuffer> GetModelPropsUniformBuffer() { return m_ModelProps; }
@@ -38,8 +57,11 @@ namespace Cgr
 		Ref<UniformBuffer> m_WorldSettings;
 		glm::vec3 m_AmbientLight;
 		glm::vec3 m_LightPosition;
+		SkyboxProps m_SkyboxProps;
 
 	private:
+		static Renderer* s_Renderer;
+
 		BufferLayout m_BufferLayout;
 		BufferLayout m_ENVLayout;
 		Ref<VertexArray> m_ModelVertexArray;

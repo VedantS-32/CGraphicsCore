@@ -10,7 +10,7 @@ uniform mat4 uView;
 
 void main()
 {    
-    vec4 pos = uProjection * mat4(mat3(uView)) * vec4(aPosition, 1.0);
+    vec4 pos = uProjection * mat4(mat3(uView)) * vec4(aPosition, 1.0f);
     vTexCoord = aPosition;
     
     gl_Position = pos.xyww;
@@ -24,12 +24,19 @@ layout(location = 1) out int EntityID;
 
 in vec3 vTexCoord;
 
-uniform float uIntensity;
-uniform float uRed;
+layout(std140) uniform WorldSettings
+{
+	vec3 uCameraPosition;
+	vec3 uAmbientColor;
+	vec3 uLightPosition;
+	vec3 uSkyboxTint;
+	float uSkyboxIntensity;
+};
+
 uniform samplerCube uSkybox;
 
 void main()
 {
-    FragColor = texture(uSkybox, vTexCoord) * vec4(uRed, 1.0, 1.0, 1.0) * uIntensity;
+    FragColor = texture(uSkybox, vTexCoord) * vec4(uSkyboxTint, 1.0f) * uSkyboxIntensity;
     EntityID = -1;
 }

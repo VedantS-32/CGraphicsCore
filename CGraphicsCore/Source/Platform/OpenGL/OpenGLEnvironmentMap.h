@@ -13,11 +13,11 @@ namespace Cgr
 	class OpenGLSkybox : public Skybox
 	{
 	public:
-		CLASS(OpenGLSkybox);
 		OpenGLSkybox();
 		virtual ~OpenGLSkybox();
 
 		virtual void Bind() override;
+		virtual void Bind(uint32_t slot) override;
 		virtual void UnBind() override;
 
 		virtual std::vector<Ref<ShaderVariable>>& GetAllVariables() override { return m_ShaderVariables; }
@@ -33,10 +33,6 @@ namespace Cgr
 		Ref<Shader> m_Shader;
 		std::vector<Ref<ShaderVariable>> m_ShaderVariables;
 		std::vector<std::string> m_TexturePaths;
-
-		float m_Rotation = 200.0f;
-		float m_Intensity = 1.0f;
-		float m_Red = 1.0f;
 
 	private:
 		RendererID m_RendererID;

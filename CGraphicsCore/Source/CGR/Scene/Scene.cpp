@@ -59,6 +59,7 @@ namespace Cgr
 			//m_ScriptEngine->OnEntityUpdate(e, ts);
 		}
 
+		m_Renderer->BindSkybox();
 		auto models = m_Registry.view<ModelComponent, TransformComponent>();
 		for (auto entity : models)
 		{

@@ -106,14 +106,6 @@ namespace Cgr
 
 	OpenGLSkybox::OpenGLSkybox()
 	{
-
-		ATTRIBUTE(Skybox Rotation, m_Rotation);
-		ATTRIBUTE(Skybox Intensity, m_Intensity);
-		ATTRIBUTE(Redness, m_Red);
-		ATTRIBUTE(Skybox, m_RendererID);
-
-		REFLECT();
-
 		glCreateTextures(GL_TEXTURE_CUBE_MAP, 1, &m_RendererID.ID);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -134,6 +126,13 @@ namespace Cgr
 		glBindTextureUnit(0, m_RendererID);
 	}
 
+	void OpenGLSkybox::Bind(uint32_t slot)
+	{
+		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
+		glActiveTexture(m_RendererID);
+		glBindTextureUnit(slot, m_RendererID);
+	}
+
 	void OpenGLSkybox::UnBind()
 	{
 		glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
@@ -150,6 +149,7 @@ namespace Cgr
 	void OpenGLSkybox::SetShader(Ref<Shader> shader)
 	{
 		m_Shader = shader;
+		Renderer::Get()->SetShaderBuffer(m_Shader);
 	}
 
 	void OpenGLSkybox::Render(Camera& camera)
@@ -157,19 +157,10 @@ namespace Cgr
 		glBindTexture(GL_TEXTURE_CUBE_MAP, m_RendererID);
 		glBindTextureUnit(0, m_RendererID);
 		m_Shader->Bind();
-		glm::mat4 rotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(m_Rotation), glm::vec3(0.0f, 1.0f, 0.0f));
 		m_Shader->SetMat4f("uProjection", camera.GetProjectionMatrix());
-		m_Shader->SetMat4f("uView", camera.GetViewMatrix() * rotationMatrix);
+		m_Shader->SetMat4f("uView", camera.GetViewMatrix() * Renderer::Get()->m_SkyboxProps.RotationMatrix);
 		m_Shader->Set1i("uSkybox", 0);
-		m_Shader->Set1f("uIntensity", m_Intensity);
-		m_Shader->Set1f("uRed", m_Red);
 
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, nullptr);
-	}
-
-	void OpenGLSkybox::OnAttributeChange()
-	{
-		
 	}
 }

@@ -56,16 +56,52 @@ static uint32_t s_CubeIndices[] = {
 
 namespace Cgr
 {
+	Renderer* Renderer::s_Renderer = nullptr;
+
+	SkyboxProps::SkyboxProps()
+		: Tint(1.0f, 1.0f, 1.0f), Intensity(1.0f), Rotation(200.0f)
+	{
+		ATTRIBUTE(Skybox Tint, Tint);
+		ATTRIBUTE(Skybox Intensity, Intensity);
+		ATTRIBUTE(Skybox Rotation, Rotation);
+		//ATTRIBUTE(Reflection Rotation, ReflectionRotation);
+
+		REFLECT();
+
+		RotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		RotationMatrix = glm::rotate(RotationMatrix, glm::radians(Rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+
+	void SkyboxProps::OnAttributeChange()
+	{
+		RotationMatrix = glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+		RotationMatrix = glm::rotate(RotationMatrix, glm::radians(Rotation), glm::vec3(0.0f, 1.0f, 0.0f));
+	}
+
 	Renderer::Renderer()
 		: m_AmbientLight(0.25f, 0.25f, 0.25f), m_LightPosition(1.0f, 1.0f, 40.0f)
 	{
+		s_Renderer = this;
+
 		m_WorldSettings = UniformBuffer::Create("WorldSettings");
 		m_ModelCommons = UniformBuffer::Create("ModelCommons");
 		m_ModelProps = UniformBuffer::Create("ModelProps");
 
+		auto rotationMatrix = m_SkyboxProps.RotationMatrix;
+		auto& reflectionRotation = m_SkyboxProps.ReflectionRotation;
+		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(reflectionRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(reflectionRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		rotationMatrix = glm::rotate(rotationMatrix, glm::radians(reflectionRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		m_ModelCommons->SetData(sizeof(glm::mat4) * 2, sizeof(glm::mat3), glm::value_ptr(glm::mat3(rotationMatrix)));
+
 		m_WorldSettings->SetData(0, sizeof(glm::vec3), glm::value_ptr(glm::vec3(1.0f)));
 		m_WorldSettings->SetData(sizeof(glm::vec4), sizeof(glm::vec3), glm::value_ptr(m_AmbientLight));
 		m_WorldSettings->SetData(sizeof(glm::vec4) * 2, sizeof(glm::vec3), glm::value_ptr(m_LightPosition));
+		m_WorldSettings->SetData(sizeof(glm::vec4) * 3, sizeof(glm::vec3), &m_SkyboxProps.Tint);
+		
+		// I don't know why frame capture is showing this offset
+		m_WorldSettings->SetData((sizeof(glm::vec4) * 3) + sizeof(glm::vec3), sizeof(float), &m_SkyboxProps.Intensity);
 	}
 
 	void Renderer::Init()
@@ -97,11 +133,34 @@ namespace Cgr
 		m_Skybox = assetManager->GetAsset<Skybox>(handle);
 	}
 
+	Renderer* Renderer::Get()
+	{
+		return s_Renderer;
+	}
+
 	void Renderer::OnUpdate(Camera& camera)
 	{
-		m_WorldSettings->SetData(0, sizeof(glm::vec3), glm::value_ptr(camera.GetPosition()));
 		m_ModelCommons->SetData(0, sizeof(glm::mat4), glm::value_ptr(camera.GetViewMatrix()));
 		m_ModelCommons->SetData(sizeof(glm::mat4), sizeof(glm::mat4), glm::value_ptr(camera.GetViewProjectionMatrix()));
+
+		auto& rotationMatrix = m_SkyboxProps.RotationMatrix;
+		//auto& reflectionRotation = m_SkyboxProps.ReflectionRotation;
+		//rotationMatrix = glm::rotate(rotationMatrix, glm::radians(reflectionRotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+		//rotationMatrix = glm::rotate(rotationMatrix, glm::radians(reflectionRotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
+		//rotationMatrix = glm::rotate(rotationMatrix, glm::radians(reflectionRotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+		m_ModelCommons->SetData(sizeof(glm::mat4) * 2, sizeof(glm::mat3), glm::value_ptr(glm::mat3(rotationMatrix)));
+
+		m_WorldSettings->SetData(0, sizeof(glm::vec3), glm::value_ptr(camera.GetPosition()));
+		m_WorldSettings->SetData(sizeof(glm::vec4) * 3, sizeof(glm::vec3), &m_SkyboxProps.Tint);
+
+		// I don't know why frame capture is showing this offset
+		m_WorldSettings->SetData((sizeof(glm::vec4) * 3) + sizeof(glm::vec3), sizeof(float), &m_SkyboxProps.Intensity);
+	}
+
+	void Renderer::BindSkybox()
+	{
+		m_Skybox->Bind(15);
 	}
 
 	void Renderer::RenderSkybox(Camera& camera)
