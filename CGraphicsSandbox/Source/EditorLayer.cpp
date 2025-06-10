@@ -496,7 +496,73 @@ namespace Cgr
         
         m_ReflectionSystem->ReflectClass("Skybox");
         m_ReflectionSystem->ReflectClass("Camera");
-        m_ReflectionSystem->ReflectClass("OpenGLTexture");
+        //m_ReflectionSystem->ReflectClass("OpenGLTexture");
+
+        {
+            ImGui::Text("Skybox");
+            auto skybox = m_Renderer->GetSkybox();
+            const auto& shaderName = skybox->GetShader()->GetName();
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            ImGui::ImageButton(std::format("##{}", shaderName).c_str(), static_cast<uintptr_t>(m_ContentBrowserPanel->GetIconMap().at("Shader")->GetRendererID()), { 98, 98 }, { 0, 1 }, { 1, 0 });
+            ImGui::PopStyleColor();
+
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
+                    skybox = m_AssetManager->GetAsset<Skybox>(handle);
+                    m_Renderer->SetSkybox(skybox);
+                    SkyboxSerializer serializer(skybox);
+                    serializer.Deserialize(m_AssetManager->GetFilePath(skybox->Handle));
+                }
+                ImGui::EndDragDropTarget();
+            }
+
+            ImGui::SameLine();
+            ImGui::BeginGroup();
+            ImGui::Text(shaderName.c_str());
+            if (ImGui::Button("Save", { 100.0f, 24.0f }))
+            {
+                SkyboxSerializer serializer(skybox);
+                serializer.Serialize(m_AssetManager->GetFilePath(skybox->Handle));
+            }
+
+            if (ImGui::Button("Load", { 100.0f, 24.0f }))
+            {
+                SkyboxSerializer serializer(skybox);
+                serializer.Deserialize(m_AssetManager->GetFilePath(skybox->Handle));
+            }
+            ImGui::EndGroup();
+
+            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, { 4.0f, 4.0f });
+            for (const auto& [side, texHandle] : skybox->GetTextureHandles())
+            {
+                auto sideName = Utils::SkyboxSideEnumToString(side);
+
+                ImGui::BeginGroup();
+                ImGui::Text(sideName.c_str());
+                ImGui::SameLine();
+                ImGui::Spacing();
+                ImGui::SameLine();
+                ImGui::ImageButton(std::format("##{}", sideName).c_str(), m_AssetManager->GetAsset<Texture2D>(texHandle)->GetRendererID(), { 64.0f, 64.0f }, ImVec2{ 1, 1 }, ImVec2{ 0, 0 });
+                ImGui::EndGroup();
+
+                if (ImGui::BeginDragDropTarget())
+                {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        AssetHandle handle = *reinterpret_cast<const uint64_t*>(payload->Data);
+                        skybox->AddTextureHandle(side, handle);
+                        skybox->UploadTextures();
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+            }
+            ImGui::PopStyleVar();
+            ImGui::PopStyleColor();
+        }
 
         ImGui::End();
 

@@ -24,6 +24,7 @@
 #include "CGR/Renderer/Framebuffer.h"
 #include "CGR/Renderer/Camera.h"
 #include "CGR/Renderer/Renderer.h"
+#include "CGR/Renderer/EnvironmentMap.h"
 
 #include "CGR/Scene/Entity.h"
 #include "CGR/Scene/Components.h"
@@ -31,6 +32,7 @@
 
 #include "CGR/Asset/Serializer/MaterialSerializer.h"
 #include "CGR/Asset/Serializer/ModelSerializer.h"
+#include "CGR/Asset/Serializer/SkyboxSerializer.h"
 #include "CGR/Scene/Serializer/SceneSerializer.h"
 
 #include "CGR/Script/ScriptEngine.h"

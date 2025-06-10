@@ -31,9 +31,10 @@ namespace Cgr
 		virtual void UnBind() = 0;
 
 		virtual std::vector<Ref<ShaderVariable>>& GetAllVariables() = 0;
-		virtual const std::vector<std::string>& GetTexturePaths() = 0;
-		virtual void AddTexturePath(const std::string& path) = 0;
+		virtual std::unordered_map<SkyboxSide, AssetHandle>& GetTextureHandles() = 0;
+		virtual void AddTextureHandle(const SkyboxSide side, const AssetHandle handle) = 0;
 		virtual void SetTexture(SkyboxSide side, TextureSpecification spec, const void* data) = 0;
+		virtual void UploadTextures() = 0;
 		virtual void SetShader(Ref<Shader> shader) = 0;
 		virtual Ref<Shader> GetShader() = 0;
 		virtual void Render(Camera& camera) = 0;

@@ -12,6 +12,7 @@ namespace Cgr
 {
 	class Camera;
 	class Skybox;
+	enum class SkyboxSide;
 
 	struct CGR_API SkyboxProps
 	{
@@ -27,6 +28,11 @@ namespace Cgr
 		glm::mat4 RotationMatrix = glm::mat4(1.0f);
 	};
 
+	namespace Utils
+	{
+		CGR_API std::string SkyboxSideEnumToString(SkyboxSide side);
+	}
+
 	class CGR_API Renderer
 	{
 	public:
@@ -38,6 +44,8 @@ namespace Cgr
 
 		//Always call Renderer::OnUpdate before calling ActiveScene::OnUpdate, as it updates shader buffer
 		void OnUpdate(Camera& camera);
+		Ref<Skybox> GetSkybox() { return m_Skybox; }
+		void SetSkybox(Ref<Skybox> skybox) { m_Skybox = skybox; }
 		void RenderSkybox(Camera& camera);
 		void BindSkybox();
 		void SetShaderBuffer(Ref<Shader> shader);

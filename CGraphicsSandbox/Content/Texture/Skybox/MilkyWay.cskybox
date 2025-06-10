@@ -1,12 +1,12 @@
-Asset: 4289
+Asset: 13630607309336235204
 Skybox: MilkyWay
 Shader: Content/Shader/Skybox.glsl
 Textures:
-  0: Content/Texture/Skybox/MilkyWay/px.png
-  1: Content/Texture/Skybox/MilkyWay/nx.png
-  2: Content/Texture/Skybox/MilkyWay/py.png
-  3: Content/Texture/Skybox/MilkyWay/ny.png
-  4: Content/Texture/Skybox/MilkyWay/pz.png
-  5: Content/Texture/Skybox/MilkyWay/nz.png
+  PositiveX: Content\Texture\Skybox\MilkyWay\px.png
+  NegativeX: Content/Texture/Skybox/MilkyWay/nx.png
+  NegativeY: Content\Texture\Skybox\MilkyWay\nz.png
+  PositiveY: Content/Texture/Skybox/MilkyWay/pz.png
+  PositiveZ: Content/Texture/Skybox/MilkyWay/py.png
+  NegativeZ: Content/Texture/Skybox/MilkyWay/ny.png
 Attributes:
-  uIntensity: 1
+  {}

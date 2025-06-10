@@ -178,7 +178,7 @@ void main()
 	vec3 skyboxReflectedDir = reflect(vModelProps.SkyboxViewDir, normal);
 
 	// Apply skybox rotation to reflection direction
-	//vec3 rotatedReflectedDir = vec3(vModelProps.SkyboxRotation * vec4(vModelProps.SkyboxReflectedDir, 1.0));
+	vec3 rotatedReflectedDir = vec3(vModelProps.SkyboxRotation * vec4(skyboxReflectedDir, 1.0));
 	
 	// Sample skybox with rotated direction
 	vec3 envColor = texture(uSkybox, skyboxReflectedDir).rgb;
@@ -186,8 +186,8 @@ void main()
 	
 	vec4 litColor = vec4(baseColor * (vMaterialParams.Intensity * (diffuse + specular) + (envColor + ambientColor) * vMaterialParams.Reflectivity), 1.0);
 
-	// Mix lit color with environmental reflections
 	FragColor = litColor;
+	//FragColor = vec4(envColor, 1.0);
 
 	EntityID = vModelProps.EntityID;
 }

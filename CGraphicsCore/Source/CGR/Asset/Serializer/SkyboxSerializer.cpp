@@ -24,11 +24,11 @@ namespace Cgr
         out << YAML::Key << "Shader" << YAML::Value << assetManager->GetFilePath(m_Skybox->GetShader()->Handle).string();
 
         out << YAML::Key << "Textures" << YAML::Value << YAML::BeginMap;
-        const auto& textures = m_Skybox->GetTexturePaths();
+        const auto& texHandles = m_Skybox->GetTextureHandles();
         int i = 0;
-        for (auto& texture : textures)
+        for (auto& [side, texHandle] : texHandles)
         {
-            out << YAML::Key << i++ << YAML::Value << texture;
+            out << YAML::Key << Utils::SkyboxSideEnumToString(side) << YAML::Value << assetManager->GetFilePath(texHandle).string();
         }
         out << YAML::EndMap;
 
@@ -106,38 +106,16 @@ namespace Cgr
         m_Skybox->SetShader(shader);
         auto textures = data["Textures"];
         int i = 0;
+        m_Skybox->GetTextureHandles().clear();
         for (auto texture : textures)
         {
-            int width, height, channels;
-            stbi_uc* data = nullptr;
-            stbi_set_flip_vertically_on_load(1);
-            {
-                data = stbi_load(texture.second.as<std::string>().c_str(), &width, &height, &channels, 0);
-                m_Skybox->AddTexturePath(texture.second.as<std::string>().c_str());
-            }
-            if (!data)
-            {
-                data = stbi_load("Content/Texture/UVChecker.png", &width, &height, &channels, 0);
-                m_Skybox->AddTexturePath("Content/Texture/UVChecker.png");
-                CGR_CORE_ASSERT(data, "Failed to load image!");
-            }
-
-            TextureSpecification spec;
-            spec.Width = width;
-            spec.Height = height;
-            if (channels == 4)
-            {
-                spec.Format = ImageFormat::RGBA8;
-            }
-            else if (channels == 3)
-            {
-                spec.Format = ImageFormat::RGB8;
-            }
-            
-            CGR_CORE_ASSERT(spec.Format != ImageFormat::None, "Image format not supported!");
-            m_Skybox->SetTexture(static_cast<SkyboxSide>(i++), spec, data);
-            stbi_image_free(data);
+            auto texHandle = assetManager->ImportAsset(texture.second.as<std::string>());
+            m_Skybox->AddTextureHandle(static_cast<SkyboxSide>(i++), texHandle);
         }
+
+        CGR_CORE_ASSERT(i == 6, "Skybox is incomplete!");
+
+        m_Skybox->UploadTextures();
 
         auto& parameters = m_Skybox->GetAllVariables();
         auto attribute = data["Attributes"];

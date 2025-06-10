@@ -146,6 +146,61 @@ namespace Cgr
 		glTexImage2D(target, 0, internalFormat, spec.Width, spec.Height, 0, dataFormat, GL_UNSIGNED_BYTE, data);
 	}
 
+	void OpenGLSkybox::UploadTextures()
+	{
+		auto assetManager = Application::Get().GetAssetManager();
+		for (auto& [side, texHandle] : m_TextureHandles)
+		{
+			int width, height, channels;
+			stbi_uc* data = nullptr;
+
+			bool flipHorizontally = false;
+			if (side == SkyboxSide::NegativeY || side == SkyboxSide::NegativeZ)
+			{
+				stbi_set_flip_vertically_on_load(0);
+				flipHorizontally = true;
+			}
+			else
+				stbi_set_flip_vertically_on_load(1);
+
+			data = stbi_load(assetManager->GetFilePath(texHandle).string().c_str(), &width, &height, &channels, 0);
+			if (!data)
+			{
+				data = stbi_load("Content/Texture/UVChecker.png", &width, &height, &channels, 0);
+				CGR_CORE_ASSERT(data, "Failed to load image!");
+			}
+
+			if (flipHorizontally)
+			{
+				stbUtils::FlipImageHorizontally(data, width, height, channels);
+			}
+			if (side == SkyboxSide::NegativeX)
+			{
+				stbUtils::RotateImage90(data, width, height, channels, false);
+			}
+			if (side == SkyboxSide::PositiveX)
+			{
+				stbUtils::RotateImage90(data, width, height, channels, true);
+			}
+
+			TextureSpecification spec;
+			spec.Width = width;
+			spec.Height = height;
+			if (channels == 4)
+			{
+				spec.Format = ImageFormat::RGBA8;
+			}
+			else if (channels == 3)
+			{
+				spec.Format = ImageFormat::RGB8;
+			}
+
+			SetTexture(side, spec, data);
+
+			stbi_image_free(data);
+		}
+	}
+
 	void OpenGLSkybox::SetShader(Ref<Shader> shader)
 	{
 		m_Shader = shader;

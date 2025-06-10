@@ -21,9 +21,10 @@ namespace Cgr
 		virtual void UnBind() override;
 
 		virtual std::vector<Ref<ShaderVariable>>& GetAllVariables() override { return m_ShaderVariables; }
-		virtual const std::vector<std::string>& GetTexturePaths() override { return m_TexturePaths; }
-		virtual void AddTexturePath(const std::string& path) override { m_TexturePaths.push_back(path); }
+		virtual std::unordered_map<SkyboxSide, AssetHandle>& GetTextureHandles() override { return m_TextureHandles; }
+		virtual void AddTextureHandle(const SkyboxSide side, const AssetHandle handle) override { m_TextureHandles[side] = handle; }
 		virtual void SetTexture(SkyboxSide side, TextureSpecification spec, const void* data) override;
+		virtual void UploadTextures() override;
 		virtual void SetShader(Ref<Shader> shader) override;
 		virtual Ref<Shader> GetShader() override { return m_Shader; }
 		virtual void Render(Camera& camera) override;
@@ -32,7 +33,7 @@ namespace Cgr
 		Ref<Material> m_ENVMapMaterial;
 		Ref<Shader> m_Shader;
 		std::vector<Ref<ShaderVariable>> m_ShaderVariables;
-		std::vector<std::string> m_TexturePaths;
+		std::unordered_map<SkyboxSide, AssetHandle> m_TextureHandles;
 
 	private:
 		RendererID m_RendererID;

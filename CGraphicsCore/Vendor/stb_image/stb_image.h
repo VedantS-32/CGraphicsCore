@@ -7872,6 +7872,12 @@ STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const* c, void* user
 
 #endif // STB_IMAGE_IMPLEMENTATION
 
+namespace stbUtils
+{
+    void FlipImageHorizontally(unsigned char* data, int width, int height, int channels);
+    void RotateImage90(unsigned char* data, int width, int height, int channels, bool clockwise = true);
+}
+
 /*
    revision history:
       2.20  (2019-02-07) support utf8 filenames in Windows; fix warnings and platform ifdefs
